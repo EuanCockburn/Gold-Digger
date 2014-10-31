@@ -18,6 +18,7 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', RedirectView.as_view(url= "/gold_digger/")),
     url(r'^gold_digger/', include('gold_digger.urls')),
+    url(r'^analytics/', include('analytics.urls')),
 )
 
 if settings.DEBUG:
