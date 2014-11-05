@@ -1,23 +1,16 @@
+# class to represent a single diggable entity within a mine object
 
-class Block(object):
 
-    """Creates a block object with a gold yield and a cue, which has a position in a Mine
-    object and is either dug or not.
+class Block:
 
-    :return: none"""
-
-    def __init__(self, position):
-        self.gold_yield = 0
-        self.cue = 0
-        self.dug = False
-        self.position = position
-
-    def set_cue(self, cue):
-        self.cue = cue
-
-    def set_yield(self, gold_yield):
+    # initialise the instance by setting yield and cue
+    def __init__(self, gold_yield, gold_cue):
         self.gold_yield = gold_yield
+        self.gold_cue = gold_cue
 
-    def __str__(self):
-        return 'Block pos: {pos},   gold: {gold},   cue: {cue},    dug: {dug}'.format\
-            (pos=self.position, gold=self.gold_yield, cue=self.cue, dug=self.dug)
+    # Getters for the block instance's yield and cue
+    def get_yield(self):
+        return self.gold_yield
+
+    def get_cue(self):
+        return self.gold_cue

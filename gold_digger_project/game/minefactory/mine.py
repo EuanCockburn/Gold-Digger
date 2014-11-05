@@ -1,48 +1,39 @@
 from block import *
 
+# class to represent a single mine composed of multiple diggable blocks
 
-class Mine():
 
-    """Creates a mine object which is constructed of blocks. Also notes current position in
-    block layers."""
+class Mine:
 
-    def __init__(self, current_position):
-        self.current_position = current_position
+    def __init__(self, depth):
+        self.depth = depth
+        self.block_position = 0
         self.block_list = []
 
-#Mutator methods for mine attributes including setting yields and cues of each mine block
+    # function to populate the mine with blocks that each have a certain yield and cue displayed to the player
+    def populate_mine(self, yield_list, cue_list):
+        for i in range(self.depth):
+            gold_yield = yield_list[i]
+            gold_cue = cue_list[i]
+            new_block = Block(gold_yield, gold_cue)
+            self.block_list.append(new_block)
 
-    def add_block(self, pos):
-        new_block = Block(pos)
-        self.block_list.append(new_block)
+    # function to check if the player has reached the bottom of the mine
+    def mine_exhausted(self):
+        if self.block_position == self.depth - 1:
+            return True
+        else:
+            return False
 
+    # function to return the current block position
+    def get_block_position(self):
+        return self.block_position
 
-    def set_yields(self, yield_list):
-        i = 0
-        for block in self.block_list:
-            block.set_yield(yield_list[i])
-            i += 1
+    # function to return the current block
+    def get_current_block(self):
+        return self.block_list[self.block_position]
 
-    def set_cues(self, cue_list):
-        i = 0
-        for block in self.block_list:
-            block.set_cue(cue_list[i])
-            i += 1
-
-    def set_position(self, pos):
-        self.current_position = pos
-
-#Accessor methods for mine attributes
-
-    def get_block_list(self):
-        return self.block_list
-
-    def get_position(self):
-        return self.current_position
-
-    def __str__(self):
-        #Overrides default string method
-        string = ""
-        for block in self.block_list:
-            string += block.__str__() + "\n"
-        return string
+    # function to return the next block in the mine
+    def get_next_block(self):
+        self.block_position += 1
+        return self.block_list[self.block_position]

@@ -1,29 +1,50 @@
-class YieldGenerator(object):
-    
-    def __init__(self, depth, max_yield, min_yield):
+from random import randint
+
+# class to construct an array of gold return for each level or block within a mine
+
+
+class YieldGenerator:
+
+    def __init__(self, depth, max_yield):
         self.depth = depth
-        self.max_yield = self.max_yield
-        self.min_yield = self.min_yield
+        self.max_yield = max_yield
 
-    def get_yield():
+# class to return an array of gold return that remains constant throughout the mine
+
+
+class ConstantYield(YieldGenerator):
+
+    def generate_array(self):
+        yield_list = []
+        gold_yield = randint(self.max_yield)
+        for i in range(0, self.depth):
+            yield_list.append(gold_yield)
+        return yield_list
+
+# class to return an array of gold return that is randomly distributed throughout the mine
+
+
+class RandomYield(YieldGenerator):
+
+    def generate_array(self):
+        yield_list = []
+        for i in range(self.depth):
+            gold_yield = randint(0, self.max_yield)
+            yield_list.append(gold_yield)
+        return yield_list
+
+# class to return an array of gold return that decreases linearly as the player digs further into the mine
+
+
+class LinearYield(YieldGenerator):
+
+    def generate_array(self):
         pass
 
-class ConstantYield(object):
+# class to return an array of gold return that decreases quadratically as the player digs further into the mine
 
-    def get_yield():
-        pass
 
-class RandomYield(object):
+class QuadraticYield(YieldGenerator):
 
-    def get_yield():
-        pass
-
-class LinearYield(object):
-
-    def get_yield():
-        pass
-
-class QuadraticYield(object):
-
-    def get_yield():
+    def generate_array(self):
         pass
