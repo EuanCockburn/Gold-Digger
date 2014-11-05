@@ -16,7 +16,7 @@ class ConstantYield(YieldGenerator):
 
     def generate_array(self):
         yield_list = []
-        gold_yield = randint(self.max_yield)
+        gold_yield = randint(0, self.max_yield)
         for i in range(0, self.depth):
             yield_list.append(gold_yield)
         return yield_list
@@ -38,13 +38,76 @@ class RandomYield(YieldGenerator):
 
 class LinearYield(YieldGenerator):
 
-    def generate_array(self):
-        pass
+    def generate_array(self, slope):
+        yield_list = []
+        for i in range(self.depth):
+            yield_x = LinearYield.linear_graph(slope, i, self.max_yield)
+            yield_list.append(yield_x)
+        return yield_list
+
+    @staticmethod
+    def linear_graph(m, x, b):
+        y = -(m*x) + b
+
+        if y < 0:
+            return 0
+
+        return y
+
 
 # class to return an array of gold return that decreases quadratically as the player digs further into the mine
-
-
 class QuadraticYield(YieldGenerator):
 
-    def generate_array(self):
-        pass
+    def generate_array(self, slope, adjust):
+        yield_list = []
+        for i in range(self.depth):
+            yield_x = QuadraticYield.quadratic_graph(slope, adjust, self.max_yield, i)
+            yield_list.append(yield_x)
+        return yield_list
+
+    @staticmethod
+    def quadratic_graph(a, k, c, x):
+        y = -a*((x-k)**2) + c
+
+        if y < 0:
+            return 0
+
+        return int(round(y))
+
+
+class ExponentialYield(YieldGenerator):
+
+    def generate_array(self, slope, adjust):
+        yield_list = []
+        for i in range(self.depth):
+            yield_x = ExponentialYield.exp_graph(slope, adjust, self.max_yield, i)
+            yield_list.append(yield_x)
+        return yield_list
+
+    @staticmethod
+    def exp_graph(a, k, c, x):
+        y = -a**(x-k) + c
+
+        if y < 0:
+            return 0
+
+        return int(round(y))
+
+
+class CubicYield(YieldGenerator):
+
+    def generate_array(self, slope):
+        yield_list = []
+        for i in range(self.depth):
+            yield_x = CubicYield.cubic_graph(slope, self.max_yield, i)
+            yield_list.append(yield_x)
+        return yield_list
+
+    @staticmethod
+    def cubic_graph(a,c,x):
+        y = -a*(x**3) + c
+
+        if y < 0:
+            return 0
+
+        return int(round(y))
