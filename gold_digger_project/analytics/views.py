@@ -3,15 +3,18 @@ from django.shortcuts import render_to_response
 from GChartWrapper import Pie
 
 import logging
-from logging.config import dictConfig
 from pythonjsonlogger import jsonlogger
 
-dictConfig(LOGGING)
-logger = logging.getLogger('my_logger')
-logger.debug('foo')
+logger = logging.getLogger()
+handler = logging.StreamHandler()
+formatter = jsonlogger.JsonFormatter('%(levelname)s %(asctime)s%(module)s%(process)d%(message)s%(pathname)s$(lineno)d$(funcName)s')
+handler.setFormatter(formatter)
+logging.basicConfig(filename='logs/example.log')
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+logger.debug('ASD')
 
 def index(request):
     context = RequestContext(request)
-    data = [['100',10],['90',9],['80',8]]
-    context_dict = {'pie': Pie(data).title('Hello Pie').color('red','lime').label('hello', 'world')}
+    context_dict = {'pie': Pie([10,10]).title('Male/Female ratio').color('red','lime').label('male', 'female')}
     return render_to_response('analytics/index.html', context_dict, context)
