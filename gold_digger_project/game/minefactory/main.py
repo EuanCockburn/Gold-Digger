@@ -13,58 +13,51 @@ move_cost = 60                                          # the amount of time it 
 yield_generator = RandomYield(depth, max_yield)
 cue_generator = AccurateCue(max_yield, scan_accuracy)
 
-game = Game(time_remaining, no_mines, depth)
-game.start_game(max_yield, yield_generator, cue_generator, scan_accuracy)
+game = Game(time_remaining, no_mines, max_yield, depth, scan_accuracy, dig_cost, move_cost,
+            yield_generator, cue_generator)
+
+game.start_game()
 
 print "\nWelcome to Gold Digger! Try to collect as much gold as you can within the time limit!\n"
 
-while game.check_end() == 0:
-
-    valid_move = False
+while not game.check_end():
 
     game_state = game.get_state()
     print "You are currently located at mine {} of {}, block {} of {}. You are carrying {} gold and have {} " \
           "units of time remaining. Your scanning equipment suggests that there are {} gold pieces to " \
-          "be uncovered here.\n".format(game_state.get("mine_pos"), no_mines, game_state.get("block_pos"),
-                                        depth, game_state.get("player_gold"), game_state.get("time_remaining"),
+          "be uncovered here.\n".format(game_state.get("mine_pos"), game_state.get("no_mines"),
+                                        game_state.get("block_pos"), game_state.get("depth"),
+                                        game_state.get("player_gold"), game_state.get("time_remaining"),
                                         game_state.get("gold_cue"))
 
     print "Do you choose to DIG further into the mine (press D on your keyboard, cost: 20 units)" \
           " or MOVE to a new location in search of another mine (press M on your keyboard, cost: 40 units)?\n"
 
-    while valid_move == 0:
+    player_choice = raw_input("-->")
+
+    while Game.check_move(player_choice) == 0:
+        print "\nInvalid choice, please choose to DIG (D) or MOVE (M).\n"
         player_choice = raw_input("-->")
 
-        while player_choice not in ["d", "m", "D", "M"]:
-            print "\nInvalid choice, please choose to DIG (D) or MOVE (M).\n"
-            player_choice = raw_input("-->")
+    if player_choice in ['d', 'D']:
+        print "\nDigging...\n"
+        print "You uncover", game.player_dig(), "gold pieces!\n"
 
-        if player_choice == "d":
-            gold_collected = game.player_dig(dig_cost)
-            print "\nDigging...\n"
-            sleep(2)
-            print "You uncover", gold_collected, "gold pieces!\n"
-            valid_move = 1
-
-            if game.current_mine.mine_exhausted() == 1:
-                print "You have exhausted this mine of its resources and must move on.\n"
-                print "You go off in search of your fortune elsewhere...\n"
-                game.player_move(move_cost)
-                sleep(3)
+        if game.current_mine.mine_exhausted() and not game.check_end():
+            print "You have exhausted this mine of its resources and must move on.\n"
+            print "You go off in search of your fortune elsewhere...\n"
+            game.player_move()
         else:
-            if game.mine_list_exhausted() == 1:
-                print "\nYou have already explored all of the mines in this area, keep digging!\n"
-            elif game.check_enough_time(move_cost) == 0:
-                print "\nThere's not enough time left in the day to go in search of a new mine!\n"
-            else:
-                print "\nYou go off in search of your fortune elsewhere...\n"
-                game.player_move(move_cost)
-                sleep(3)
-                valid_move = 1
+            continue
+    else:
+        if game.mine_list_exhausted():
+            print "\nYou have already explored all of the mines in this area, keep digging!\n"
+        elif game.check_time():
+            print "\nYou go off in search of your fortune elsewhere...\n"
+            game.player_move()
+        else:
+            print "\nThere's not enough time left in the day to go in search of a new mine!\n"
 
-print "Time up! You managed to mine a grand total of ", game.get_player_gold(), " gold pieces!\n\nGame Over!"
+game_state = game.get_state()
 
-
-
-
-
+print "Time up! You managed to mine a grand total of ", game_state.get("player_gold"), " gold pieces!\n\nGame Over!"

@@ -20,20 +20,18 @@ class Mine:
 
     # function to check if the player has reached the bottom of the mine
     def mine_exhausted(self):
-        if self.block_position == self.depth - 1:
-            return True
-        else:
-            return False
+        if self.block_position == self.depth:
+            return 1
+        return 0
 
     # function to return the current block position
     def get_block_position(self):
         return self.block_position
 
+    # function advance the players position within the mine
+    def inc_block_pos(self):
+        self.block_position += 1
+
     # function to return the current block
     def get_current_block(self):
-        return self.block_list[self.block_position]
-
-    # function to return the next block in the mine
-    def get_next_block(self):
-        self.block_position += 1
         return self.block_list[self.block_position]
