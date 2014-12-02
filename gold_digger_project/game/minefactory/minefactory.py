@@ -13,11 +13,11 @@ class MineFactory:
 
     # creates a single mine using a yield and cue list to specify the available gold and cue displayed to the player at
     # each level of the mine
-    def create_mine(self, depth, max_yield, scan_accuracy):
+    def create_mine(self, depth, max_yield, scan_accuracy, dig, move):
         yield_list = self.yield_generator.generate_array()
         cue_list = self.cue_generator.generate_array(yield_list)
 
         new_mine = Mine(depth)
-        new_mine.populate_mine(yield_list, cue_list)
+        new_mine.populate_mine(yield_list, cue_list, dig, move)
 
         return new_mine

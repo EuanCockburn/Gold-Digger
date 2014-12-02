@@ -46,6 +46,9 @@ while not game.check_end():
         if game.current_mine.mine_exhausted() and not game.check_end():
             print "You have exhausted this mine of its resources and must move on.\n"
             print "You go off in search of your fortune elsewhere...\n"
+            print "You stopped digging at block {}, but you should have stopped at block {}. \n"\
+                .format(game_state.get("block_pos"), game_state.get("mine_optimal_stop"))
+
             game.player_move()
         else:
             continue
@@ -54,10 +57,14 @@ while not game.check_end():
             print "\nYou have already explored all of the mines in this area, keep digging!\n"
         elif game.check_time():
             print "\nYou go off in search of your fortune elsewhere...\n"
+            print "You stopped digging at block {}, but you should have stopped at block {}. \n"\
+                .format(game_state.get("block_pos"), game_state.get("mine_optimal_stop"))
             game.player_move()
         else:
             print "\nThere's not enough time left in the day to go in search of a new mine!\n"
 
 game_state = game.get_state()
+print "You stopped digging at block {}, but you should have stopped at block {}. \n"\
+    .format(game_state.get("block_pos"), game_state.get("mine_optimal_stop"))
 
 print "Time up! You managed to mine a grand total of ", game_state.get("player_gold"), " gold pieces!\n\nGame Over!"

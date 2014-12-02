@@ -26,7 +26,8 @@ move = 20
 
 rand = RandomYield(depth, max_yield).generate_array()
 print "Random", rand, get_optimal(rand, dig, move)
-print "Constant", ConstantYield(depth, max_yield).generate_array()
+const = ConstantYield(depth, max_yield).generate_array()
+print "Constant", const , get_optimal(const, dig, move)
 print "Linear", LinearYield(depth, max_yield).generate_array(20)
 quad = QuadraticYield(depth, max_yield).generate_array(2, 5)
 print "Quadratic", quad, get_optimal(quad, dig, move)

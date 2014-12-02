@@ -26,7 +26,8 @@ class Game:
 
         mine_factory = MineFactory(self.yield_generator, self.cue_generator)
         for i in range(self.no_mines):
-            new_mine = mine_factory.create_mine(self.depth, self.max_yield, self.scan_accuracy)
+            new_mine = mine_factory.create_mine(self.depth, self.max_yield, self.scan_accuracy, self.dig_cost,
+                                                self.move_cost)
             self.mine_list.append(new_mine)
 
     # function to check if the player has chosen to perform a move that is valid
@@ -46,6 +47,7 @@ class Game:
     def get_state(self):
         state_dict = {"mine_pos": self.mine_position + 1,
                       "block_pos": self.current_mine.get_block_position() + 1,
+                      "mine_optimal_stop": self.current_mine.get_optimal() + 1,
                       "no_mines": self.no_mines,
                       "depth": self.depth,
                       "player_gold": self.player_gold,
@@ -80,7 +82,7 @@ class Game:
         self.player_gold += gold_collected
         self.time_remaining -= self.dig_cost
         self.current_mine.inc_block_pos()
-        if not self.current_mine.mine_exhausted:
+        if not self.current_mine.mine_exhausted():
             self.current_block = self.current_mine.get_current_block()
         return gold_collected
 
