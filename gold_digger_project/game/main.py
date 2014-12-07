@@ -3,7 +3,7 @@ from yieldgen import RandomYieldGenerator, ConstantYieldGenerator, LinearYieldGe
 from mine import Mine
 from gold_digger import logger
 import os
-
+#import memcache # import memcache functionality
 
 
 maxgold = 42
@@ -12,6 +12,7 @@ maxgold = 42
 scan = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2]
 sa = []
 
+#mc = memcache.Client(['127.0.0.1:11211'], debug=0) #Define the memcache
 
 for s in scan:
     span = cuegen.cue_function(s, maxgold)

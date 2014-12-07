@@ -10,6 +10,8 @@ TEMPLATE_PATH = os.path.join(PROJECT_PATH, 'templates')
 STATIC_PATH = os.path.join(PROJECT_PATH, 'static')
 DATABASE_PATH = os.path.join(PROJECT_PATH, 'gold.db')
 
+CACHE_DIR = os.path.join(PROJECT_PATH, 'cache')
+
 print PROJECT_PATH
 print TEMPLATE_PATH
 print STATIC_PATH
@@ -34,6 +36,18 @@ DATABASES = {
         'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',                      # Set to empty string for default.
     }
+}
+
+#Define caches to be used in storing sessions
+
+CACHES = {
+	'default' : {
+		'BACKEND' : 'django.core.cache.backends.filebased.FileBasedCache',
+		'LOCATION' : CACHE_DIR,
+		'OPTIONS' :{
+		'MAX_ENTRIES': 1000
+		}
+	}
 }
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False

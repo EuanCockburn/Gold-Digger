@@ -2,9 +2,11 @@ from minefactory import *
 from yieldgenerator import *
 from cuegenerator import *
 
+# import cache and pickle functioning
+from django.core.cache import cache
+import pickle
+
 # class to represent an instance of a game
-
-
 class Game:
 
     def __init__(self, time_remaining, no_mines, max_yield, depth, scan_accuracy, dig_cost, move_cost,
@@ -28,7 +30,7 @@ class Game:
         for i in range(self.no_mines):
             new_mine = mine_factory.create_mine(self.depth, self.max_yield, self.scan_accuracy, self.dig_cost,
                                                 self.move_cost)
-            self.mine_list.append(new_mine)
+            self.mine_list.append(new_mine)	
 
     # function to check if the player has chosen to perform a move that is valid
     @staticmethod
@@ -42,6 +44,23 @@ class Game:
     def start_game(self):
         self.current_mine = self.mine_list[self.mine_position]
         self.current_block = self.current_mine.get_current_block()
+
+    #Function to store game in cache
+    def store_game_incache(id, game):
+        cache.set(id,pickle.dumps(game), 500)
+
+    #Fucntion to retrieve game from cache
+    def get_game_incache(id):
+        game = pickle.loads(cache.get(id))
+        return game
+    
+    #Functions used for retrieving game
+    def retrieve_game(id):
+	return get_game_incache(id)
+   
+    #Fucntion to call game storage in cache
+    def store_game(id, game):
+	store_game_incache(id, game)
 
     # function to return the current state of the game
     def get_state(self):

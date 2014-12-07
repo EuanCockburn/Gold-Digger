@@ -5,7 +5,7 @@ from gold_digger.forms import UserForm, UserProfileForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from game import yieldgen, mine
+from game import yieldgen, mine, store_game, retrieve_game, end_game
 from gold_digger.models import UserProfile, ScanningEquipment, DiggingEquipment, Vehicle, UserAchievements, Achievements
 import pickle
 from django.core.urlresolvers import reverse
@@ -16,8 +16,6 @@ import json
 locations = ['California', 'Yukon', 'Brazil', 'South Africa', 'Scotland', 'Victoria']
 
 from logger import event_logger
-
-
 
 def home(request):
 

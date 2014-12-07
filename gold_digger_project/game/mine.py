@@ -1,7 +1,6 @@
 from gold_digger.logger import event_logger
 from block import Block
 import cuegen
-
 class Mine(object):
 
     def __init__(self, yield_generator, scan, user):

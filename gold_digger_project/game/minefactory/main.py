@@ -3,6 +3,7 @@ from yieldgenerator import *
 from cuegenerator import *
 from time import sleep
 
+
 time_remaining = 200                                    # the player starts with 300 units of time
 no_mines = 10                                           # the game will consist of ten individual mines
 depth = 10                                              # each mine will be 10 blocks deep
@@ -22,7 +23,9 @@ print "\nWelcome to Gold Digger! Try to collect as much gold as you can within t
 
 while not game.check_end():
 
+    
     game_state = game.get_state()
+
     print "You are currently located at mine {} of {}, block {} of {}. You are carrying {} gold and have {} " \
           "units of time remaining. Your scanning equipment suggests that there are {} gold pieces to " \
           "be uncovered here.\n".format(game_state.get("mine_pos"), game_state.get("no_mines"),
@@ -42,6 +45,7 @@ while not game.check_end():
     if player_choice in ['d', 'D']:
         print "\nDigging...\n"
         print "You uncover", game.player_dig(), "gold pieces!\n"
+	
 
         if game.current_mine.mine_exhausted() and not game.check_end():
             print "You have exhausted this mine of its resources and must move on.\n"
