@@ -41,9 +41,12 @@ class Game:
 
     # function to create a mine factory and construct a game consisting of several mines
     # will be used during GUI implementation to begin prompting the user
-    def start_game(self):
+    def start(self):
         self.current_mine = self.mine_list[self.mine_position]
         self.current_block = self.current_mine.get_current_block()
+
+    def get_current_blocks(self):
+        return self.mine_list[self.mine_position].block_list
 
     #Function to store game in cache
     def store_game_incache(id, game):
@@ -83,6 +86,11 @@ class Game:
             return 1
         return 0
 
+    def check_mine(self):
+        if self.self.current_mine.mine_exhausted():
+            return 1
+        return 0
+
     # function to check the player has enough time to move to another mine
     def check_time(self):
         if self.move_cost < self.time_remaining:
@@ -103,11 +111,13 @@ class Game:
         self.current_mine.inc_block_pos()
         if not self.current_mine.mine_exhausted():
             self.current_block = self.current_mine.get_current_block()
+        else:
+            return -1
         return gold_collected
 
     # function that moves the player to the next available mine and puts them back above ground (block 0)
     def player_move(self):
-            self.mine_position += 1
-            self.current_mine = self.mine_list[self.mine_position]
-            self.current_block = self.current_mine.get_current_block()
-            self.time_remaining -= self.move_cost
+        self.mine_position += 1
+        self.current_mine = self.mine_list[self.mine_position]
+        self.current_block = self.current_mine.get_current_block()
+        self.time_remaining -= self.move_cost

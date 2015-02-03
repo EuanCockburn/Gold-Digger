@@ -136,30 +136,27 @@
         {% if blocks %}
             <div class="col-xs-5 mine">
                 {% for block in blocks %}
-                    {% if visibility > block.pos %}
+                    {% if visibility > forloop.counter0 %}
                         {% if block.dug == False %}
-                            <div class="row flecks_{{ block.cue }} animated" id="goldlayer_{{ block.pos }}">
-                                <div class="scaffold_1_shaded" id="scaffoldlayer_{{ block.pos }}">
-                                    <div class="points" id="points_{{ block.pos }}"></div>
-                                    <div class="comment" id="comment_{{ block.pos }}"></div>
+                            <div class="row flecks_{{ block.cue_hint }} animated" id="goldlayer_{{ forloop.counter0 }}">
+                                <div class="scaffold_1_shaded" id="scaffoldlayer_{{ forloop.counter0 }}">
+                                    <div class="points" id="points_{{ forloop.counter0 }}"></div>
+                                    <div class="comment" id="comment_{{ forloop.counter0 }}"></div>
                                 </div>
                             </div>
                         {% else %}
-                            <div class="row nuggets_{{ block.cue }}" id="goldlayer_{{ block.pos }}">
-                                <div class="scaffold_3" id="scaffoldlayer_{{ block.pos }}">
-                                    <div class="points" id="points_{{ block.pos }}"></div>
-                                    <div class="comment" id="comment_{{ block.pos }}"></div>
+                            <div class="row nuggets_{{ block.yield_hint }}" id="goldlayer_{{ forloop.counter0 }}">
+                                <div class="scaffold_3" id="scaffoldlayer_{{ forloop.counter0 }}">
+                                    <div class="points" id="points_{{ forloop.counter0 }}"></div>
+                                    <div class="comment" id="comment_{{ forloop.counter0 }}"></div>
                                 </div>
                             </div>
                         {% endif %}
-                    {% if block.dug == True %}
-
-                    {% endif %}
                     {% else %}
-                        <div class="row flecks_0 animated" id="goldlayer_{{ block.pos }}">
-                            <div class="" id="scaffoldlayer_{{ block.pos }}">
-                                <div class="points" id="points_{{ block.pos }}"></div>
-                                <div class="comment" id="comment_{{ block.pos }}"></div>
+                        <div class="row flecks_0 animated" id="goldlayer_{{ forloop.counter0 }}">
+                            <div class="" id="scaffoldlayer_{{ forloop.counter0 }}">
+                                <div class="points" id="points_{{ forloop.counter0 }}"></div>
+                                <div class="comment" id="comment_{{ forloop.counter0 }}"></div>
                             </div>
                         </div>
                     {% endif %}
@@ -172,17 +169,17 @@
             <div class="col-xs-3 mine">
                 {% for block in blocks %}
 
-                    {% if block.pos == pointer %}
-                        <div class="" id="row_{{ block.pos }}">
-                            <div class="buttons" id="invisiblebuttons_{{ block.pos }}">
-                                <button type="submit" class="button btm-default btn-sm" value="{{ block.gold }}" name="dig"
-                                        id="digbutton_{{ block.pos }}"> dig ({{ dig_cost }})
+                    {% if forloop.counter0 == pointer %}
+                        <div class="" id="row_{{ forloop.counter0 }}">
+                            <div class="buttons" id="invisiblebuttons_{{ forloop.counter0 }}">
+                                <button type="submit" class="button btm-default btn-sm" name="dig"
+                                        id="digbutton_{{ forloop.counter0 }}"> dig ({{ dig_cost }})
                                 </button>
-                                <input type="hidden" value="{{ block.pos }}" name="block"
-                                       id="blockposition_{{ block.pos }}"/>
+                                <input type="hidden" value="{{ forloop.counter0 }}" name="block"
+                                       id="blockposition_{{ forloop.counter0 }}"/>
                             </div>
                             <form class="move" action="/gold_digger/move/" method="post"
-                                  id="movebutton_{{ block.pos }}">
+                                  id="movebutton_{{ forloop.counter0 }}">
                                 {% csrf_token %}
                                 <button type="submit" class="button btm-default btn-sm" value="move mine" name="move"
                                         id="controls">move ({{ move_cost }})
@@ -192,17 +189,17 @@
                     {% elif block.dug == True %}
                         <div class='row' id='resultcol'>--- <img src='/static/nugget.png'></div>
                     {% elif block.dug == False %}
-                        <div class="" id="row_{{ block.pos }}">
-                            <div class="buttons hidden" id="invisiblebuttons_{{ block.pos }}">
-                                <button type="submit" class="button btm-default btn-sm" value="{{ block.gold }}" name="dig"
-                                        id="digbutton_{{ block.pos }}"> dig ({{ dig_cost }})
+                        <div class="" id="row_{{ forloop.counter0 }}">
+                            <div class="buttons hidden" id="invisiblebuttons_{{ forloop.counter0 }}">
+                                <button type="submit" class="button btm-default btn-sm" value="{{ block.gold_yield }}" name="dig"
+                                        id="digbutton_{{ forloop.counter0 }}"> dig ({{ dig_cost }})
                                 </button>
 
-                                <input type="hidden" value="{{ block.pos }}" name="block"
-                                       id="blockposition_{{ block.pos }}"/>
+                                <input type="hidden" value="{{ forloop.counter0 }}" name="block"
+                                       id="blockposition_{{ forloop.counter0 }}"/>
                             </div>
                             <form class="move hidden row" action="/gold_digger/move/" method="post"
-                                  id="movebutton_{{ block.pos }}">
+                                  id="movebutton_{{ forloop.counter0 }}">
                                 {% csrf_token %}
                                 <button type="submit" class="button btm-default btn-sm" value="move mine" name="move"
                                         id="controls">move ({{ move_cost }})

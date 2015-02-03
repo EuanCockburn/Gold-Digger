@@ -5,7 +5,7 @@ from gold_digger.forms import UserForm, UserProfileForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from game import yieldgen, mine, store_game, retrieve_game, end_game
+from game import yieldgenerator, cuegenerator, game
 from gold_digger.models import UserProfile, ScanningEquipment, DiggingEquipment, Vehicle, UserAchievements, Achievements
 import pickle
 from django.core.urlresolvers import reverse
@@ -54,7 +54,6 @@ def home(request):
         profile_form = UserProfileForm()
         return render_to_response('gold_digger/home.html', {'user_form': user_form, 'profile_form': profile_form}, context)
 
-
 def about(request):
 
     context = RequestContext(request)
@@ -79,7 +78,7 @@ def register(request):
         vehicle = Vehicle.objects.get(pk=1)
 
         user_form = UserForm(data=request.POST)
-        profile_form = UserProfileForm(data=request.POST) #initial={'equipment': scan.pk, 'vehicle': vehicle, 'tool': dig_eq.pk})
+        profile_form = UserProfileForm(data=request.POST)
 
 
         if user_form.is_valid() and profile_form.is_valid():
@@ -211,33 +210,24 @@ def user_profile(request):
 
 @login_required
 def move(request):
-
     context = RequestContext(request)
     user = UserProfile.objects.get(user=request.user)
-    point_s = str(request.session['pointer'] - 1)
 
-    if request.session['time_remaining'] <= 0:
-        return HttpResponseRedirect(reverse('game_over'), context)
-
-    request.session['has_mine'] = False
-    print request.session['has_mine']
     request.session['time_remaining'] -= user.vehicle.modifier
+    request.session['pointer'] = 0;
     user.mines += 1
     user.save()
 
-    days_s = str(request.session['days'])
-    mines_s = str(user.mines)
-    life_s = str(user.game_overs)
-    mine_no_s = str(request.session['mine_no'])
-    gold_s = str(user.gold)
-    curr_s = str(request.session['gold'])
-    event_logger.info('USER ' + user.user.username + ' LIFE ' + life_s + ' TOT ' + mines_s + ' DAY ' + days_s + ' MNO ' + mine_no_s + ' TG ' + gold_s + ' CG ' + curr_s + ' MOVE ' + point_s)
-    return HttpResponseRedirect(reverse('game2'), context)
+    _game_pickled = request.session['game_pickled']
+    _game = pickle.loads(_game_pickled)
+    _game.player_move()
+    _game_pickled = pickle.dumps(_game)
+    request.session['game_pickled'] = _game_pickled
 
+    return HttpResponseRedirect(reverse('game2'), context)
 
 @login_required
 def back_to_main(request):
-
     context = RequestContext(request)
     user = UserProfile.objects.get(user=request.user)
     request.session['has_mine'] = False
@@ -258,13 +248,14 @@ def game_over(request):
 
     # Updating user values
     user.gold += request.session['gold']
-    # user.mines += 1
+    user.mines += 1
     user.games_played += 1
     request.session['days'] += 1
     user.all_time_gold += request.session['gold']
     user.average = user.all_time_gold/user.mines
     user.save()
-    request.session['has_mine'] = False
+
+    request.session['game_started'] = False
     request.session['mine_type'] = ''
     request.session['time_remaining'] = 100
     mine_no = (request.session['mine_no'])-1
@@ -273,14 +264,6 @@ def game_over(request):
     total_gold = user.gold
     request.session['gold'] = 0
     cost = determine_cost(request.session['location'])
-
-    gold_s = str(request.session['gold'])
-    total_gold_s = str(total_gold)
-    mines_s = str(user.mines)
-    life_s = str(user.game_overs)
-    mine_no_s = str(request.session['mine_no'])
-
-    event_logger.info('USER ' + user.user.username + ' LIFE ' + life_s + ' TOT ' + mines_s + ' END ' + ' MNO ' + mine_no_s + ' CG ' + gold_s + ' TG ' + total_gold_s)
 
     if user.gold < 40:
         return HttpResponseRedirect(reverse('game_over2'), context)
@@ -318,7 +301,7 @@ def game_choice2(request):
 
     mine_types = ['California', 'Yukon', 'Brazil', 'South Africa', 'Scotland', 'Victoria']
 
-    request.session['has_mine'] = False
+    request.session['game_started'] = False
     request.session['mine_type'] = ''
     request.session['purchase'] = False
     request.session['time_remaining'] = 100
@@ -348,243 +331,131 @@ def game_choice2(request):
 def game2(request):
     context = RequestContext(request)
     user = UserProfile.objects.get(user=request.user)
-    days_s = str(request.session['days'])
-
 
     if request.session['mine_type'] == '':
         mine_type = request.session['location']
         user.gold -= determine_cost(mine_type)
         user.save()
-
-        mines_s = str(user.mines)
-        life_s = str(user.game_overs)
-        event_logger.info('USER ' + user.user.username + ' LIFE ' + life_s + ' TOT ' + mines_s + ' DAY ' + days_s + ' NLOC ' + mine_type + ' SCAN ' + user.equipment.name + ' DIG ' + user.tool.name + ' VEHICLE ' + user.vehicle.name)
-
     else:
         mine_type = request.session['mine_type']
-        mine_no_s = str(request.session['mine_no'])
-        mines_s = str(user.mines)
-        life_s = str(user.game_overs)
 
-        event_logger.info('USER ' + user.user.username + ' LIFE ' + life_s + ' TOT ' + mines_s + ' DAY ' + days_s + ' LOC ' + mine_type + ' MNO ' + mine_no_s)
+    if not request.session['game_started']:
+        _time_remaining = request.session['time_remaining']      # the player starts with 300 units of time
+        _no_mines = 10                                           # the game will consist of ten individual mines
+        _depth = 10                                              # each mine will be 10 blocks deep
+        _max_yield = 100                                         # the player has the chance to mine a maximum of 100 gold
 
-    if not request.session['has_mine']:
-        gen = yieldgen.YieldGenerator
+        _yield = yieldgenerator.RandomYield(_depth, _max_yield)
+        _cue = cuegenerator.RandomCue(_max_yield, user.equipment.modifier)
 
-        # Randomising the max amount of gold
-        up_boundary = 50
-        down_boundary = 40
-        max_gold = random.randint(down_boundary, up_boundary)
+        _game = game.Game(_time_remaining, _no_mines, _max_yield, _depth, user.equipment.modifier, user.tool.time_modifier, user.vehicle.modifier,
+            _yield, _cue)
 
-        limits = divide(max_gold)
-        pickled_limits = pickle.dumps(limits)
-        request.session['limits'] = pickled_limits
-        request.session['mine_no'] += 1
-
-        time_remaining = request.session['time_remaining']
+        _game.start()
 
         if mine_type == 'California':
-            print "California"
+            # print "California"
             request.session['mine_type'] = 'California'
-            gen = yieldgen.CaliforniaQuadraticYieldGenerator(depth=10, max=max_gold, min=0)
 
         elif mine_type == 'Yukon':
-            print "Yukon"
+            # print "Yukon"
             request.session['mine_type'] = "Yukon"
-            gen = yieldgen.YukonQuadraticYieldGenerator(depth=10, max=max_gold, min=0)
 
         elif mine_type == 'Brazil':
-            print "Brazil"
+            # print "Brazil"
             request.session['mine_type'] = 'Brazil'
-            gen = yieldgen.BrazilQuadraticYieldGenerator(depth=10, max=max_gold, min=0)
 
         elif mine_type == 'South Africa':
-            print "South Africaaaaaaaaaaaaaaaaaaaaaaaa"
+            # print "South Africa"
             request.session['mine_type'] = 'South Africa'
-            gen = yieldgen.SouthAfricaQuadraticYieldGenerator(depth=10, max=max_gold, min=0)
 
         elif mine_type == 'Scotland':
-            print "Scotland"
+            # print "Scotland"
             request.session['mine_type'] = 'Scotland'
-            gen = yieldgen.ScotlandQuadraticYieldGenerator(depth=10, max=max_gold, min=0)
 
         elif mine_type == 'Victoria':
-            print "Victoria"
+            # print "Victoria"
             request.session['mine_type'] = 'Victoria'
-
-            gen = yieldgen.VictoriaQuadraticYieldGenerator(depth=10, max=max_gold, min=0)
         else:
-            print "Faaaaaiiilllll"
-        accuracy = user.equipment.modifier
-        m = mine.Mine(gen, accuracy, user)
-        blocks = m.blocks
-
-        real_array = []
-
-        for b in blocks:
-            a = round(b.gold*user.tool.modifier)
-            real_array.append(a)
+            print "Invalid mine in session variable"
 
 
-        real_array_s = str(real_array)
-        mine_no_s = str(request.session['mine_no'])
-
-        event_logger.info('USER ' + user.user.username + ' LIFE ' + life_s + ' TOT ' + mines_s + ' MNO ' + mine_no_s + ' RMY ' + real_array_s)
-
-        digcost = user.tool.time_modifier
-        move_cost = user.vehicle.modifier
-        digcost_s = str(digcost)
-        move_cost_s = str(move_cost)
-        gold_s = str(user.gold)
-        should_stop_s = str(should_stop(user, real_array, digcost, move_cost))
-        curr_s = str(request.session['gold'])
-
-
-        event_logger.info('USER ' + user.user.username + ' LIFE ' + life_s + ' TOT ' + mines_s + ' MNO ' + mine_no_s + ' TG ' + gold_s + ' CG ' + curr_s + ' DIGC ' + digcost_s + ' MOC ' + move_cost_s + ' SMOVE ' + should_stop_s)
-
-        request.session['has_mine'] = True
+        _game_pickled = pickle.dumps(_game)
+        request.session['game_pickled'] = _game_pickled
         request.session['pointer'] = 0
+        _move_cost = user.vehicle.modifier
+        _dig_cost = user.tool.time_modifier
+        _location = request.session['location']
+        _pointer = request.session['pointer']
+        _visibility = int(user.equipment.modifier*10)
+        _mod_scan = int(user.equipment.modifier*100)
+        _mod_tool = int(user.tool.modifier*100)
+        _modt_tool = user.tool.time_modifier
+        _mod_vehicle = user.vehicle.modifier
 
-        scaffold = [1, 2, 3]
+        request.session['game_started'] = True
 
-        # Pickling
-        pickled_blocks = pickle.dumps(blocks)
-        request.session['pickle'] = pickled_blocks
-        move_cost = user.vehicle.modifier
-        dig_cost = user.tool.time_modifier
-        location = request.session['location']
-        pointer = request.session['pointer']
-        mine_no = request.session['mine_no']
-        visibility = int(user.equipment.modifier*10)
-        mod_scan = int(user.equipment.modifier*100)
-        mod_tool = int(user.tool.modifier*100)
-        modt_tool = user.tool.time_modifier
-        mod_vehicle = user.vehicle.modifier
-
-        if time_remaining < 0:
-            return HttpResponseRedirect(reverse('game_over'), context)
-
-        return render_to_response('gold_digger/game2.html', {'blocks': blocks,
-                                                             'user': user,
-                                                             'time_remaining': time_remaining,
-                                                             'limits': limits,
-                                                             'scaffold': scaffold,
-                                                             'move_cost': move_cost,
-                                                             'dig_cost': dig_cost,
-                                                             'location': location,
-                                                             'pointer': pointer,
-                                                             'mine_no': mine_no,
-                                                             'visibility': visibility,
-                                                             'mod_scan': mod_scan,
-                                                             'mod_tool': mod_tool,
-                                                             'modt_tool': modt_tool,
-                                                             'mod_vehicle': mod_vehicle}, context)
     else:
         # Unpickling
-        pickled_blocks = request.session['pickle']
-        blocks = pickle.loads(pickled_blocks)
-        pickled_limits = request.session['limits']
-        limits = pickle.loads(pickled_limits)
-        move_cost = user.vehicle.modifier
-        dig_cost = user.tool.time_modifier
-        location = request.session['location']
-        time_remaining = request.session['time_remaining']
-        pointer = request.session['pointer']
-        mine_no = request.session['mine_no']
-        visibility = int((user.equipment.modifier) * 10)
-        mod_scan = int(user.equipment.modifier * 100)
-        mod_tool = int(user.tool.modifier * 100)
-        modt_tool = user.tool.time_modifier
-        mod_vehicle = user.vehicle.modifier
+        _game_pickled = request.session['game_pickled']
+        _game = pickle.loads(_game_pickled)
+        _move_cost = user.vehicle.modifier
+        _dig_cost = user.tool.time_modifier
+        _location = request.session['location']
+        _time_remaining = request.session['time_remaining']
+        _pointer = request.session['pointer']
+        _visibility = int((user.equipment.modifier) * 10)
+        _mod_scan = int(user.equipment.modifier * 100)
+        _mod_tool = int(user.tool.modifier * 100)
+        _modt_tool = user.tool.time_modifier
+        _mod_vehicle = user.vehicle.modifier
 
-        scaffold = [1, 2, 3]
-
-        if time_remaining < 0:
-            return HttpResponseRedirect(reverse('game_over'), context)
-
-        return render_to_response('gold_digger/game2.html', {'blocks': blocks,
+    return render_to_response('gold_digger/game2.html', {'blocks': _game.get_current_blocks(),
                                                              'user': user,
-                                                             'time_remaining': time_remaining,
-                                                             'limits': limits,
-                                                             'scaffold': scaffold,
-                                                             'move_cost': move_cost,
-                                                             'dig_cost': dig_cost,
-                                                             'location': location,
-                                                             'pointer': pointer,
-                                                             'mine_no': mine_no,
-                                                             'visibility': visibility,
-                                                             'mod_scan': mod_scan,
-                                                             'mod_tool': mod_tool,
-                                                             'modt_tool': modt_tool,
-                                                             'mod_vehicle': mod_vehicle}, context)
-
-
-def divide(max_gold):
-    limits = []
-    span = max_gold / 6
-    limits.append(max_gold)
-    for x in range(6):
-
-        max_gold -= span
-
-        limits.append(max_gold)
-
-    return limits
+                                                             'time_remaining': _time_remaining,
+                                                             'move_cost': _move_cost,
+                                                             'dig_cost': _dig_cost,
+                                                             'location': _location,
+                                                             'pointer': _pointer,
+                                                             'mine_no': _game.mine_position+1,
+                                                             'visibility': _visibility,
+                                                             'mod_scan': _mod_scan,
+                                                             'mod_tool': _mod_tool,
+                                                             'modt_tool': _modt_tool,
+                                                             'mod_vehicle': _mod_vehicle}, context)
 
 
 @login_required
 def ajaxview(request):
     user = UserProfile.objects.get(user=request.user)
-    context = RequestContext(request)
 
     # Unpickling the blocks
-    pickled_blocks = request.session['pickle']
-    blocks = pickle.loads(pickled_blocks)
+    _game_pickled = request.session['game_pickled']
+    _game = pickle.loads(_game_pickled)
 
     # POSTED objects['pointer']
-    gold_dug = int(request.POST['dig'])                         # Requesting the AMOUNT OF GOLD
-    gold_dug_s = str(gold_dug)
-    pos = int(request.POST['block'])                            # Requesting the POSITION
-
-    gold_extracted = int(round(gold_dug*user.tool.modifier))    # Working out the actual amount of gold
-    gold_extracted_s = str(gold_extracted)
-    # Updating the session values
+    gold_collected = _game.player_dig()
 
     request.session['pointer'] += 1
     request.session['time_remaining'] -= user.tool.time_modifier
-    request.session['gold'] += int(round(gold_dug*user.tool.modifier))
-
-
-    # Updating the block values
-    blocks[pos].dug = True
-    blocks[pos].gold_extracted = gold_extracted
+    request.session['gold'] += gold_collected
 
     # Pickling
-    pickled_blocks = pickle.dumps(blocks)
-    request.session['pickle'] = pickled_blocks
-
-    pickled_limits = request.session['limits']
-    limits = pickle.loads(pickled_limits)
+    _game_pickled = pickle.dumps(_game)
+    request.session['game_pickled'] = _game_pickled
 
     myResponse = {}
 
-    if gold_dug > limits[0]:
-            myResponse['nuggets'] = 0
-    else:
-        for x in range(len(limits)-1):
-            if limits[x] >= gold_dug > limits[x+1]:
-                myResponse['nuggets'] = x
+    if gold_collected == -1:
+        move(request)
 
-    if request.session['pointer'] == len(blocks):
-        myResponse['nextmine'] = True
-
-    if request.session['time_remaining'] <= 0:
+    if _game.check_end():
         return HttpResponse(status=204)
 
     myResponse['totalgold'] = user.gold
     myResponse['timeremaining'] = request.session['time_remaining']
     myResponse['currentgold'] = request.session['gold']
-    myResponse['goldextracted'] = gold_extracted
+    myResponse['goldextracted'] = gold_collected
 
     return HttpResponse(json.dumps(myResponse), content_type="application/json")
 
@@ -663,14 +534,6 @@ def ajax_upgrade(request):
             myResponse['image'] = new_item.image.url
             myResponse['gold'] = user.gold
 
-            # logging
-            days_s = str(request.session['days'])
-            total_gold_s = str(user.gold)
-            life_s = str(user.game_overs)
-            mine_no_s = str(request.session['mine_no'])
-
-
-            event_logger.info('USER ' + user.user.username + ' LIFE ' + life_s + ' TOT ' + mines_s + ' MNO ' + mine_no_s + ' DAY ' + days_s + ' BUY ' + new_item.name + ' TG ' + total_gold_s)
             return HttpResponse(json.dumps(myResponse), content_type="application/json")
 
     if item_type == 'tool':
@@ -702,16 +565,6 @@ def ajax_upgrade(request):
             myResponse['image'] = new_item.image.url
             myResponse['gold'] = user.gold
 
-            # logging
-            days_s = str(request.session['days'])
-            total_gold_s = str(user.gold)
-            life_s = str(user.game_overs)
-            mine_no_s = str(request.session['mine_no'])
-
-
-            event_logger.info('USER ' + user.user.username + ' LIFE ' + life_s + ' TOT ' + mines_s + ' MNO ' + mine_no_s + ' DAY ' + days_s + ' BUY ' + new_item.name + ' TG ' + total_gold_s)
-
-
             return HttpResponse(json.dumps(myResponse), content_type="application/json")
 
 
@@ -742,14 +595,6 @@ def ajax_upgrade(request):
             myResponse['image'] = new_item.image.url
             myResponse['gold'] = user.gold
 
-            # logging
-            days_s = str(request.session['days'])
-            total_gold_s = str(user.gold)
-            life_s = str(user.game_overs)
-            mine_no_s = str(request.session['mine_no'])
-
-
-            event_logger.info('USER ' + user.user.username + ' LIFE ' + life_s + ' TOT ' + mines_s + ' MNO ' + mine_no_s + ' DAY ' + days_s + ' BUY ' + new_item.name + ' TG ' + total_gold_s)
 
             return HttpResponse(json.dumps(myResponse), content_type="application/json")
 
@@ -794,13 +639,7 @@ def determine_cost(mine_type):
 
 @login_required
 def ajax_exit(request):
-    user = UserProfile.objects.get(user=request.user)
-    days_s = str(request.session['days'])
-    mine_no_s = str(request.session['mine_no'])
-    mines_s = str(user.mines)
-    life_s = str(user.game_overs)
-
-    event_logger.info('USER ' + user.user.username + ' LIFE ' + life_s + ' TOT ' + mines_s + ' DAY ' + days_s + ' MNO ' + mine_no_s + ' EB ' + request.POST['escape'])
+    # user = UserProfile.objects.get(user=request.user)
 
     return HttpResponse(status=200)
 
@@ -958,22 +797,11 @@ def should_stop(user, real_array, digcost, movecost):
 
     for i in range(0, len(cum_array)):
         yc = round(cum_array[i]/(movecost + ((i+1) * digcost)), 2)
-
         yieldovercost.append(yc)
 
-
     for i in range(0, len(yieldovercost)):
-
         if yieldovercost[i] >= ycmax:
             ycmax = yieldovercost[i]
             stop_here = i
-
-
-    mines_s = str(user.mines)
-    life_s = str(user.game_overs)
-    yieldovercost_s = str(yieldovercost)
-
-    event_logger.info('USER ' + user.user.username + ' LIFE ' + life_s + ' TOT ' + mines_s + ' YC ' + yieldovercost_s)
-
 
     return stop_here

@@ -1,69 +1,74 @@
-from game import cuegen
-from yieldgen import RandomYieldGenerator, ConstantYieldGenerator, LinearYieldGenerator, QuadraticYieldGenerator,ExponentialYieldGenerator, CubicYieldGenerator, CaliforniaQuadraticYieldGenerator, BrazilQuadraticYieldGenerator, YukonQuadraticYieldGenerator, ScotlandQuadraticYieldGenerator, SouthAfricaQuadraticYieldGenerator, VictoriaQuadraticYieldGenerator
-from mine import Mine
-from gold_digger import logger
-import os
-#import memcache # import memcache functionality
+from game import *
+from yieldgenerator import *
+from cuegenerator import *
+from time import sleep
 
 
-maxgold = 42
+time_remaining = 200                                    # the player starts with 300 units of time
+no_mines = 10                                           # the game will consist of ten individual mines
+depth = 10                                              # each mine will be 10 blocks deep
+max_yield = 100                                         # the player has the chance to mine a maximum of 100 gold
+scan_accuracy = 0.6                                     # the player's equipment has a predetermined accuracy
+dig_cost = 10                                           # the amount of time it takes to dig
+move_cost = 60                                          # the amount of time it takes to move to another mine
+yield_generator = RandomYield(depth, max_yield)
+cue_generator = AccurateCue(max_yield, scan_accuracy)
 
+game = Game(time_remaining, no_mines, max_yield, depth, scan_accuracy, dig_cost, move_cost,
+            yield_generator, cue_generator)
 
-scan = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2]
-sa = []
+game.start_game()
 
-#mc = memcache.Client(['127.0.0.1:11211'], debug=0) #Define the memcache
+print "\nWelcome to Gold Digger! Try to collect as much gold as you can within the time limit!\n"
 
-for s in scan:
-    span = cuegen.cue_function(s, maxgold)
-    sa.append(span)
+while not game.check_end():
 
-print '\n' + 'Accuracy: 90%: {0}  80%: {1},  70%: {2},  60%: {3},  50%: {4},  40%: {5},  30%: {6},  20%: {7}'.format\
-    (sa[0], sa[1], sa[2], sa[3], sa[4], sa[5], sa[6], sa[7]) + '\n'
+    
+    game_state = game.get_state()
 
+    print "You are currently located at mine {} of {}, block {} of {}. You are carrying {} gold and have {} " \
+          "units of time remaining. Your scanning equipment suggests that there are {} gold pieces to " \
+          "be uncovered here.\n".format(game_state.get("mine_pos"), game_state.get("no_mines"),
+                                        game_state.get("block_pos"), game_state.get("depth"),
+                                        game_state.get("player_gold"), game_state.get("time_remaining"),
+                                        game_state.get("gold_cue"))
 
-index = 0
-countcue = 5
-x = maxgold/cuegen.cue_patterns
-for d in range(maxgold, 0, -1):
-    print d
-    index += 1
-    if index == x:
-        print "^^^^^^^^^^^^^^^^^^^^ Cue ", countcue
-        countcue -= 1
-        index = 0
+    print "Do you choose to DIG further into the mine (press D on your keyboard, cost: 20 units)" \
+          " or MOVE to a new location in search of another mine (press M on your keyboard, cost: 40 units)?\n"
 
+    player_choice = raw_input("-->")
 
-ryg = CaliforniaQuadraticYieldGenerator(depth=10, max=maxgold, min=0)
-cyg = YukonQuadraticYieldGenerator(depth=10, max=maxgold, min=0)
-lyg = BrazilQuadraticYieldGenerator(depth=10, max=maxgold, min=0)
-qyg = ScotlandQuadraticYieldGenerator(depth=10, max=maxgold, min=0)
-eyg = SouthAfricaQuadraticYieldGenerator(depth=10, max=maxgold, min=0)
-cuyg = VictoriaQuadraticYieldGenerator(depth=10, max=maxgold, min=0)
+    while Game.check_move(player_choice) == 0:
+        print "\nInvalid choice, please choose to DIG (D) or MOVE (M).\n"
+        player_choice = raw_input("-->")
 
-logger.event_logger.info("Yield Generators created")
+    if player_choice in ['d', 'D']:
+        print "\nDigging...\n"
+        print "You uncover", game.player_dig(), "gold pieces!\n"
+	
 
-mryg = Mine(ryg, 0.8)
-mcyg = Mine(cyg, 0.8)
-mlyg = Mine(lyg, 0.8)
-mqyg = Mine(qyg, 0.8)
-meyg = Mine(eyg, 0.8)
-mcuyg = Mine(cuyg, 0.8)
+        if game.current_mine.mine_exhausted() and not game.check_end():
+            print "You have exhausted this mine of its resources and must move on.\n"
+            print "You go off in search of your fortune elsewhere...\n"
+            print "You stopped digging at block {}, but you should have stopped at block {}. \n"\
+                .format(game_state.get("block_pos"), game_state.get("mine_optimal_stop"))
 
-print '\n' + "### Cali ###" + '\n'
-mryg.show_mine()
+            game.player_move()
+        else:
+            continue
+    else:
+        if game.mine_list_exhausted():
+            print "\nYou have already explored all of the mines in this area, keep digging!\n"
+        elif game.check_time():
+            print "\nYou go off in search of your fortune elsewhere...\n"
+            print "You stopped digging at block {}, but you should have stopped at block {}. \n"\
+                .format(game_state.get("block_pos"), game_state.get("mine_optimal_stop"))
+            game.player_move()
+        else:
+            print "\nThere's not enough time left in the day to go in search of a new mine!\n"
 
-print '\n' + "### Yukon ###" + '\n'
-mcyg.show_mine()
+game_state = game.get_state()
+print "You stopped digging at block {}, but you should have stopped at block {}. \n"\
+    .format(game_state.get("block_pos"), game_state.get("mine_optimal_stop"))
 
-print '\n' + "### Brazil ###" + '\n'
-mlyg.show_mine()
-
-print '\n' + "### Scotland ###" + '\n'
-mqyg.show_mine()
-
-print '\n' + "### SA ###" + '\n'
-meyg.show_mine()
-
-print '\n' + "### Victoria ###" + '\n'
-mcuyg.show_mine()
+print "Time up! You managed to mine a grand total of ", game_state.get("player_gold"), " gold pieces!\n\nGame Over!"

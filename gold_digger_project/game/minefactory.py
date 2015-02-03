@@ -18,6 +18,6 @@ class MineFactory:
         cue_list = self.cue_generator.generate_array(yield_list)
 
         new_mine = Mine(depth)
-        new_mine.populate_mine(yield_list, cue_list, dig, move)
+        new_mine.populate_mine(yield_list, cue_list, dig, move, max_yield)
 
         return new_mine

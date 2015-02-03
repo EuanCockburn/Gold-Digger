@@ -1,45 +1,61 @@
-from gold_digger.logger import event_logger
-from block import Block
-import cuegen
-class Mine(object):
+from block import *
 
-    def __init__(self, yield_generator, scan, user):
-        self.blocks = []
-        self.yield_generator = yield_generator
-        self.depth = self.yield_generator.depth
-        self.scan = scan
-        self.user = user
-        self.make_mine()
-
-    def make_mine(self):
-        """
-        Generates a Mine with Blocks containing random
-
-        :return: none
-        """
-        self.blocks = []
-
-        yield_array = self.yield_generator.make_yields()
-
-        yield_array_s = str(yield_array)
-        mines_s = str(self.user.mines)
-        game_overs = str(self.user.game_overs)
-        event_logger.info('USER ' + self.user.user.username + ' LIFE ' + game_overs + ' TOT ' + mines_s + ' MY ' + yield_array_s)
-        print "Yield array:", yield_array
-        max_gold = 0
-        for y in yield_array:
-            if y > max_gold:
-                max_gold = y
+# class to represent a single mine composed of multiple diggable blocks
 
 
+class Mine:
 
-        cue_array = cuegen.make_cue(yield_array, self.scan, max_gold)  # Generate the array of cue values;
-        print "Cue array:", cue_array                                                  # based on yield and scanning equipment
+    def __init__(self, depth):
+        self.depth = depth
+        self.block_position = 0
+        self.block_list = []
+        self.optimal = -1
 
-        for index in range(self.depth):                              # For every value in the array
-            b = Block(index, yield_array[index], cue_array[index])   # Make a block with  yield and cue values
-            self.blocks.append(b)                                    # Add the block to the Mine
+    # function to populate the mine with blocks that each have a certain yield and cue displayed to the player
+    def populate_mine(self, yield_list, cue_list, dig, move, max_yield):
+        for i in range(self.depth):
+            gold_yield = yield_list[i]
+            gold_cue = cue_list[i]
+            new_block = Block(gold_yield, gold_cue, max_yield)
+            self.block_list.append(new_block)
+        self.optimal = self.calculate_optimal(yield_list, dig, move)
 
-    def show_mine(self):
-        for b in self.blocks:
-            print b
+    # function to check if the player has reached the bottom of the mine
+    def mine_exhausted(self):
+        if self.block_position == self.depth:
+            return 1
+        return 0
+
+    # function to return the current block position
+    def get_block_position(self):
+        return self.block_position
+
+    # function advance the players position within the mine
+    def inc_block_pos(self):
+        self.block_position += 1
+
+    # function to return the current block
+    def get_current_block(self):
+        return self.block_list[self.block_position]
+
+    # function to return the optimal stop point
+    def get_optimal(self):
+        return self.optimal
+
+    # function to calculate the optimal stopping point of a mine
+    @staticmethod
+    def calculate_optimal(yield_array, dig_cost, move_cost):
+        x = move_cost
+        y = 0
+        max_gradient_pos = -1
+        max_gradient = -100
+
+        for i in range(0, len(yield_array)):
+            y += yield_array[i]
+            x += dig_cost
+            m = y / x
+            if m > max_gradient:
+                max_gradient = m
+                max_gradient_pos = i
+
+        return max_gradient_pos
