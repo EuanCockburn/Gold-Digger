@@ -4,6 +4,7 @@ Pillow==2.4.0
 argparse==1.2.1
 django-bootstrap-form==3.1
 python-json-logger==0.1.1
+python-social-auth==0.2.1
 stevedore==0.14.1
 virtualenv==1.11.2
 virtualenv-clone==0.2.5
