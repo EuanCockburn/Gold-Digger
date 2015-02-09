@@ -10,6 +10,14 @@ from django.core.urlresolvers import reverse
 import json
 from logger import event_logger
 
+#added for open auth:
+from social.pipeline.partial import partial
+from django.contrib.auth.models import User
+from gold_digger.models import UserProfile, ScanningEquipment, Vehicle, DiggingEquipment
+from django.template import RequestContext
+from requests import request
+from gold_digger import views
+
 # This function creates a dictionary of the various user values
 # While forcing any function looking for user values to find all of them it stops repeated code
 # May split each call into a separate function to limit calls needed to be made
@@ -622,3 +630,18 @@ def add_achievement(user, achievement):
     else:
         myResponse['unlocked'] = True
         return myResponse
+		
+		
+#method for open auth to create new profile
+def add_new_profile( user, response, *args, **kwargs):
+	try:
+		profile = UserProfile.objects.get(user=user)
+	except UserProfile.DoesNotExist:
+		profile = UserProfile(user=user)
+
+	profile.equipment = ScanningEquipment.objects.get(pk=1)
+        profile.vehicle = Vehicle.objects.get(pk=1)
+        profile.tool = DiggingEquipment.objects.get(pk=1)
+
+	#probably need to add logger event for the new log???
+        profile.save()
