@@ -1,5 +1,5 @@
 from django import forms
-from gold_digger.models import UserProfile, ScanningEquipment, Vehicle, DiggingEquipment
+from models import UserProfile, ScanningEquipment, Vehicle, DiggingEquipment
 from django.contrib.auth.models import User
 
 class UserForm(forms.ModelForm):
