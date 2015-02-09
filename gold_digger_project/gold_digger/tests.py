@@ -2,9 +2,9 @@
 
 from django.contrib.auth.models import User
 from django.test import TestCase
-from django.core.files import File
-from gold_digger.models import UserProfile, ScanningEquipment, DiggingEquipment, Vehicle
-from gold_digger.forms import UserForm, UserProfileForm
+# from django.core.files import File
+from models import UserProfile, ScanningEquipment, DiggingEquipment, Vehicle
+from forms import UserForm, UserProfileForm
 from game import yieldgen, cuegen, mine
 import collections
 

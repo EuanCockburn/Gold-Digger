@@ -1,5 +1,5 @@
 from django.contrib import admin
-from gold_digger.models import UserProfile, ScanningEquipment, DiggingEquipment, Vehicle, Achievements, UserAchievements
+from models import UserProfile, ScanningEquipment, DiggingEquipment, Vehicle, Achievements, UserAchievements
 from django.contrib.auth.models import User
 
 class UserAdmin2 (admin.ModelAdmin):
