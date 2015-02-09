@@ -19,6 +19,8 @@ urlpatterns = patterns('',
     url(r'^$', RedirectView.as_view(url= "/gold_digger/")),
     url(r'^gold_digger/', include('gold_digger.urls')),
     url(r'^analytics/', include('analytics.urls')),
+    url(r'^gold_digger/', include('social.apps.django_app.urls', namespace='social')), 
+    url(r'^gold_digger/', include('django.contrib.auth.urls', namespace='auth')),
 )
 
 if settings.DEBUG:
