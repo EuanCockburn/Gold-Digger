@@ -1,5 +1,8 @@
 {% extends "gold_digger/base.html" %}
 {% load bootstrap %}
+{% load static %} <!-- added for open auth to get google+ and facebook signs -->
+<!-- {% load url from future %} -->
+
 <!DOCTYPE html>
 <html>
 <head lang="en">
@@ -125,6 +128,12 @@
                                                 Register
                                             </button><br><br>
                                     {% endif %}
+
+<!--Added for OAuth -->        <p><font size="3"> Or: </font></p>
+
+				<a href="{% url 'social:begin' 'facebook' %}?next={{ request.path }}"><img src="{% static "f2-150.png" %}" alt="Login with Facebook" ></a>
+				<a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}"> <img src="{% static "GoogleSignIn.png" %}" alt="Login with Google" style="width:157px;height:30px"></a>
+<!--Until here -->
 
                                 </fieldset>
                             </form>
