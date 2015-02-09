@@ -1,6 +1,11 @@
 # Django settings for gold_digger_project project.
 import os
 
+#from gold_digger_project import utility   #added to link the method for the new profile creating in open auth
+#from gold_digger_project import utils
+
+
+
 SETTINGS_DIR = os.path.dirname(__file__)
 
 PROJECT_PATH = os.path.join(SETTINGS_DIR, os.pardir)
@@ -11,6 +16,18 @@ STATIC_PATH = os.path.join(PROJECT_PATH, 'static')
 DATABASE_PATH = os.path.join(PROJECT_PATH, 'gold.db')
 
 CACHE_DIR = os.path.join(PROJECT_PATH, 'cache')
+
+#social auth implementation
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '237155373117-620c76et2ad2ir3sk76ke53nb4qhq8np.apps.googleusercontent.com' 
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'B9AgBjDaeUGe5Q2OesbWowdZ' 
+LOGIN_REDIRECT_URL = '/'
+SOCIAL_AUTH_LOGIN_REDIRECT_URL='gold_digger/'
+SOCIAL_AUTH_LOGIN_ERROR_URL='gold_digger/'
+SOCIAL_AUTH_FACEBOOK_KEY = '1537307233188668'
+SOCIAL_AUTH_FACEBOOK_SECRET ='0d20a87449f58cae002a7d429d775ed1'
+SOCIAL_AUTH_SCOPE = ['email']
+AUTH_PROFILE_MODULE='gold_digger.UserProfile'
+
 
 print PROJECT_PATH
 print TEMPLATE_PATH
@@ -168,6 +185,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'gold_digger',
     'analytics',
+    'social.apps.django_app.default', #added for open auth
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
@@ -200,3 +218,29 @@ LOGGING = {
         },
     }
 }
+
+
+
+#open auth implementation: try to associate with an existing user, else create new user
+AUTHENTICATION_BACKENDS = (            
+'social.backends.facebook.FacebookOAuth2',
+'social.backends.google.GoogleOAuth2',
+'social.backends.twitter.TwitterOAuth',
+'django.contrib.auth.backends.ModelBackend',
+)
+
+SOCIAL_AUTH_PIPELINE = (
+    'social.pipeline.social_auth.social_details',
+    'social.pipeline.social_auth.social_uid',
+    'social.pipeline.social_auth.auth_allowed',
+    'social.pipeline.social_auth.social_user',
+ 
+    'social.pipeline.social_auth.associate_by_email', #associate users by email
+
+    'social.pipeline.user.get_username',
+    'social.pipeline.user.create_user',  #if user doesn't exist, create new one
+    'utility.add_new_profile', 
+    'social.pipeline.social_auth.associate_user',
+    'social.pipeline.social_auth.load_extra_data',
+    'social.pipeline.user.user_details'
+)
