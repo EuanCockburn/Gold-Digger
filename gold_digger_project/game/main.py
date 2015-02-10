@@ -17,7 +17,7 @@ cue_generator = AccurateCue(max_yield, scan_accuracy)
 game = Game(time_remaining, no_mines, max_yield, depth, scan_accuracy, dig_cost, move_cost,
             yield_generator, cue_generator)
 
-game.start_game()
+game.start()
 
 print "\nWelcome to Gold Digger! Try to collect as much gold as you can within the time limit!\n"
 

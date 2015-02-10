@@ -3,8 +3,8 @@ from yieldgenerator import *
 from cuegenerator import *
 
 # import cache and pickle functioning
-from django.core.cache import cache
 import pickle
+from logger import logger, log_type
 
 # class to represent an instance of a game
 class Game:
@@ -44,6 +44,7 @@ class Game:
     def start(self):
         self.current_mine = self.mine_list[self.mine_position]
         self.current_block = self.current_mine.get_current_block()
+        logger.log(self, log_type.START_GAME)
 
     def get_current_blocks(self):
         return self.mine_list[self.mine_position].block_list
@@ -113,6 +114,7 @@ class Game:
             self.current_block = self.current_mine.get_current_block()
         else:
             return -1
+        logger.log(self, log_type.DIG)
         return gold_collected
 
     # function that moves the player to the next available mine and puts them back above ground (block 0)
@@ -121,3 +123,4 @@ class Game:
         self.current_mine = self.mine_list[self.mine_position]
         self.current_block = self.current_mine.get_current_block()
         self.time_remaining -= self.move_cost
+        logger.log(self, log_type.MOVE)
