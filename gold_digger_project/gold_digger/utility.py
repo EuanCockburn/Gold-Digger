@@ -1,4 +1,6 @@
-from game import yieldgenerator, cuegenerator, game
+from game.game import *
+from game.yieldgenerator import *
+from game.cuegenerator import *
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render_to_response
@@ -16,7 +18,7 @@ from django.contrib.auth.models import User
 from gold_digger.models import UserProfile, ScanningEquipment, Vehicle, DiggingEquipment
 from django.template import RequestContext
 from requests import request
-from gold_digger import views
+from views import *
 
 # This function creates a dictionary of the various user values
 # While forcing any function looking for user values to find all of them it stops repeated code
@@ -49,16 +51,16 @@ def contextget(request):
     return context
 
 
-def startgame(request):
+def startgame(request, mine_type):
     user = userstats(request)
-    _time_remaining = request.session['time_remaining']  # the player starts with 300 units of time
+    _time_remaining = 100  # the player starts with 300 units of time
     _no_mines = 10  # the game will consist of ten individual mines
     _depth = 10  # each mine will be 10 blocks deep
     _max_yield = 100  # the player has the chance to mine a maximum of 100 gold
 
-    _yield = yieldgenerator.RandomYield(_depth, _max_yield)
-    _cue = cuegenerator.RandomCue(_max_yield, user['current_user'].equipment.modifier)
-    _game = game.Game(_time_remaining,
+    _yield = RandomYield(_depth, _max_yield)
+    _cue = RandomCue(_max_yield, user['current_user'].equipment.modifier)
+    _game = Game(_time_remaining,
                       _no_mines,
                       _max_yield,
                       _depth,
@@ -230,7 +232,7 @@ def userprofile(request):
                                                            'achievements': achieve}, context)
 
 
-def move(context, request):
+def move(request):
     userstat = userstats(request)
     context = contextget(request)
 
@@ -354,12 +356,15 @@ def game(request):
         mine_type = request.session['mine_type']
 
     if not request.session['game_started']:
-        _game = startgame(request)  # call on the start game method
+        _game = startgame(request, mine_type)  # call on the start game method
 
         _game_pickled = pickle.dumps(_game)
         request.session['game_pickled'] = _game_pickled
         request.session['pointer'] = 0
+        request.session['time_remaining'] = 100
+        _time_remaining = 100
         request.session['game_started'] = True
+		
 
     else:
         # Unpickling
@@ -367,7 +372,7 @@ def game(request):
         _game = pickle.loads(_game_pickled)
         _time_remaining = request.session['time_remaining']
 
-    _location = request.sesstion['location']
+    _location = request.session['location']
     _pointer = request.session['pointer']
 
     return render_to_response('gold_digger/game2.html', {'blocks': _game.get_current_blocks(),
