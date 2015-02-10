@@ -277,7 +277,7 @@ def gameover(request):
     request.session['days'] += 1
     userstat['current_user'].all_time_gold += request.session['gold']
     userstat['current_user'].average = userstat['current_user'].all_time_gold / userstat['mines']
-    userstat['curent_user'].save()
+    userstat['current_user'].save()
 
     request.session['game_started'] = False
     request.session['mine_type'] = ''
@@ -429,7 +429,7 @@ def ajaxview(request):
     myResponse = {}
 
     if gold_collected == -1:
-        move(request)
+        myResponse['nextmine'] = True
 
     if _game.check_end():
         return HttpResponse(status=204)
