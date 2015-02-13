@@ -54,7 +54,7 @@ def contextget(request):
 def startgame(request, mine_type):
     user = userstats(request)
     _time_remaining = 100  # the player starts with 300 units of time
-    _no_mines = 10  # the game will consist of ten individual mines
+    _no_mines = 20  # the game will consist of ten individual mines
     _depth = 10  # each mine will be 10 blocks deep
     _max_yield = 100  # the player has the chance to mine a maximum of 100 gold
 
@@ -238,8 +238,12 @@ def move(request):
 
     request.session['time_remaining'] -= userstat['mod_vehicle']
     request.session['pointer'] = 0
+    request.session['mine_no'] += 1
     userstat['current_user'].mines += 1
     userstat['current_user'].save()
+
+    if request.session['time_remaining'] <= 0:
+        return HttpResponseRedirect(reverse('game_over'), context)
 
     _game_pickled = request.session['game_pickled']
     _game = pickle.loads(_game_pickled)
@@ -282,7 +286,7 @@ def gameover(request):
     request.session['game_started'] = False
     request.session['mine_type'] = ''
     request.session['time_remaining'] = 100
-    mine_no = (request.session['mine_no']) - 1
+    mine_no = request.session['mine_no']
     request.session['mine_no'] = 0
     day_gold = request.session['gold']
     total_gold = userstat['gold']
@@ -361,6 +365,7 @@ def game(request):
         _game_pickled = pickle.dumps(_game)
         request.session['game_pickled'] = _game_pickled
         request.session['pointer'] = 0
+        request.session['mine_no'] = 1
         request.session['time_remaining'] = 100
         _time_remaining = 100
         request.session['game_started'] = True
@@ -371,6 +376,9 @@ def game(request):
         _game_pickled = request.session['game_pickled']
         _game = pickle.loads(_game_pickled)
         _time_remaining = request.session['time_remaining']
+        
+        if _time_remaining <= 0:
+            return HttpResponseRedirect(reverse('game_over'), context)
 
     _location = request.session['location']
     _pointer = request.session['pointer']
