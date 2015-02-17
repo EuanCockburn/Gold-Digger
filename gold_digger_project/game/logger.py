@@ -4,10 +4,10 @@ import json
 import time
 
 class Logger:
-	self.numer = 1
+	number = 1
 
 	def __init__(self):
-		logging.basicConfig(filename='../logs/example'+self.numer+'.log',level=logging.INFO)
+		logging.basicConfig(filename='logs/example1.log',level=logging.INFO)
 		self.logger = logging.getLogger()
 		self.logHandler = logging.StreamHandler()
 		self.formatter = jsonlogger.JsonFormatter()
