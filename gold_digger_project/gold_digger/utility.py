@@ -57,42 +57,48 @@ def startgame(request, mine_type):
     _time_remaining = 100  # the player starts with 300 units of time
     _no_mines = 20  # the game will consist of ten individual mines
     _depth = 10  # each mine will be 10 blocks deep
-    _max_yield = 100  # the player has the chance to mine a maximum of 100 gold
 
     if mine_type == 'California':
         # print "California"
         request.session['mine_type'] = 'California'
-        _yield = QuadraticYield(_depth, 25, 1, random.uniform(-2, 2))
+        _yield = RandUniformAdjustYield(_depth, 25, 1, -2, 2)
+        _max_yield = 25
 
     elif mine_type == 'Yukon':
         # print "Yukon"
         request.session['mine_type'] = "Yukon"
-        span = [-15, 5]
-        k = random.randint(30, 50) + random.choice(span)
-        _yield = QuadraticYield(_depth, k, 1, 0)
+        list = [15, 20, 25, 35, 45, 50, 55]
+        _yield = RandMaxYield(_depth, 55, 1, 0, list)
+        _max_yield = 55
 
     elif mine_type == 'Brazil':
         # print "Brazil"
         request.session['mine_type'] = 'Brazil'
         span = [10, 12, 15, 20]
-        _yield = QuadraticYield(_depth, random.choice(span), -1.5, 5)
+        _yield = RandMaxYield(_depth, 20, -1.5, 5, span)
+        _max_yield = 20
 
     elif mine_type == 'South Africa':
         # print "South Africa"
         request.session['mine_type'] = 'South Africa'
         span = [0.2, 0.1, 0.3, 6, 8]
-        _yield = QuadraticYield(_depth, 50 + random.randint(-3, 3), random.choice(span), 0)
+        list = [47, 48, 49, 50, 51, 52, 53]
+        _yield = RandMaxYield(_depth, 53, random.choice(span), 0, list)
+        _max_yield = 53
 
     elif mine_type == 'Scotland':
         # print "Scotland"
         request.session['mine_type'] = 'Scotland'
-        _yield = QuadraticYield(_depth, random.randint(-10, 5) + 90, 0.7, random.randint(-8, -2))
+        list = [80, 83, 85, 87, 90, 92, 95]
+        _yield = RandMaxYield(_depth, 95, 0.7, random.randint(-8, -2), list)
+        _max_yield = 95
 
     elif mine_type == 'Victoria':
         # print "Victoria"
         request.session['mine_type'] = 'Victoria'
-        span = [10, -20]
-        _yield = QuadraticYield(_depth, random.randint(60, 100) + random.choice(span), 1, 3)
+        list = [40, 50, 60, 70, 80, 90, 100, 110]
+        _yield = RandMaxYield(_depth, 110, 1, 3, list)
+        _max_yield = 110
     else:
         print "Invalid mine in session variable"
 

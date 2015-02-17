@@ -1,4 +1,4 @@
-from random import randint
+from random import *
 
 # class to construct an array of gold return for each level or block within a mine
 
@@ -40,7 +40,6 @@ class LinearYield(YieldGenerator):
 
     def __init__(self, depth, max_yield, slope):
         YieldGenerator.__init__(self, depth, max_yield)
-        #super(LinearYield, self).__init__(depth, max_yield)
         self.slope = slope
 
     def generate_array(self):
@@ -65,7 +64,6 @@ class QuadraticYield(YieldGenerator):
 
     def __init__(self, depth, max_yield, slope, adjust):
         YieldGenerator.__init__(self, depth, max_yield)
-        #super(QuadraticYield, self).__init__(depth, max_yield)
         self.slope = slope
         self.adjust = adjust
 
@@ -84,6 +82,52 @@ class QuadraticYield(YieldGenerator):
             return 0
 
         return int(round(y))
+
+
+# class to return an array of gold return that decreases quadratically as the player digs further into the mine, with
+# random variations on each data point
+class RandUniformAdjustYield(YieldGenerator):
+
+    def __init__(self, depth, max_yield, slope, adjust_a, adjust_b):
+        YieldGenerator.__init__(self, depth, max_yield)
+        self.slope = slope
+        self.adjust_a = adjust_a
+        self.adjust_b = adjust_b
+
+    def generate_array(self):
+        yield_list = []
+        k = uniform(self.adjust_a, self.adjust_b)
+        for i in range(self.depth):
+            yield_x = QuadraticYield.quadratic_graph(self.slope, k, self.max_yield, i)
+            yield_list.append(yield_x)
+        return yield_list
+
+    @staticmethod
+    def quadratic_graph(a, k, c, x):
+        y = -a*((x-k)**2) + c
+
+        if y < 0:
+            return 0
+
+        return int(round(y))
+
+# class to return an array of gold return that decreases quadratically as the player digs further into the mine, with
+# random variations on each data point
+class RandMaxYield(YieldGenerator):
+
+    def __init__(self, depth, max_yield, slope, adjust, list):
+        YieldGenerator.__init__(self, depth, max_yield)
+        self.slope = slope
+        self.adjust = adjust
+        self.list = list
+
+    def generate_array(self):
+        yield_list = []
+        k = choice(self.list)
+        for i in range(self.depth):
+            yield_x = QuadraticYield.quadratic_graph(self.slope, self.adjust, k, i)
+            yield_list.append(yield_x)
+        return yield_list
 
 
 class ExponentialYield(YieldGenerator):
