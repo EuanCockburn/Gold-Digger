@@ -38,10 +38,15 @@ class RandomYield(YieldGenerator):
 
 class LinearYield(YieldGenerator):
 
-    def generate_array(self, slope):
+    def __init__(self, depth, max_yield, slope):
+        YieldGenerator.__init__(self, depth, max_yield)
+        #super(LinearYield, self).__init__(depth, max_yield)
+        self.slope = slope
+
+    def generate_array(self):
         yield_list = []
         for i in range(self.depth):
-            yield_x = LinearYield.linear_graph(slope, i, self.max_yield)
+            yield_x = LinearYield.linear_graph(self.slope, i, self.max_yield)
             yield_list.append(yield_x)
         return yield_list
 
@@ -58,10 +63,16 @@ class LinearYield(YieldGenerator):
 # class to return an array of gold return that decreases quadratically as the player digs further into the mine
 class QuadraticYield(YieldGenerator):
 
-    def generate_array(self, slope, adjust):
+    def __init__(self, depth, max_yield, slope, adjust):
+        YieldGenerator.__init__(self, depth, max_yield)
+        #super(QuadraticYield, self).__init__(depth, max_yield)
+        self.slope = slope
+        self.adjust = adjust
+
+    def generate_array(self):
         yield_list = []
         for i in range(self.depth):
-            yield_x = QuadraticYield.quadratic_graph(slope, adjust, self.max_yield, i)
+            yield_x = QuadraticYield.quadratic_graph(self.slope, self.adjust, self.max_yield, i)
             yield_list.append(yield_x)
         return yield_list
 

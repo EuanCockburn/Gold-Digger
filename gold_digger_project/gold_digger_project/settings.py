@@ -239,7 +239,7 @@ SOCIAL_AUTH_PIPELINE = (
 
     'social.pipeline.user.get_username',
     'social.pipeline.user.create_user',  #if user doesn't exist, create new one
-    'utility.add_new_profile', 
+    'gold_digger.utility.add_new_profile',
     'social.pipeline.social_auth.associate_user',
     'social.pipeline.social_auth.load_extra_data',
     'social.pipeline.user.user_details'

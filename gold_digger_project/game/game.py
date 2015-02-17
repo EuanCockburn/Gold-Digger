@@ -111,8 +111,8 @@ class Game:
         self.current_mine.inc_block_pos()
         if not self.current_mine.mine_exhausted():
             self.current_block = self.current_mine.get_current_block()
-        else:
-            return -1
+        #else:
+        #    return 0
         return gold_collected
 
     # function that moves the player to the next available mine and puts them back above ground (block 0)

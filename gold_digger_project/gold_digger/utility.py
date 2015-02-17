@@ -19,6 +19,7 @@ from gold_digger.models import UserProfile, ScanningEquipment, Vehicle, DiggingE
 from django.template import RequestContext
 from requests import request
 from views import *
+import random
 
 # This function creates a dictionary of the various user values
 # While forcing any function looking for user values to find all of them it stops repeated code
@@ -54,11 +55,47 @@ def contextget(request):
 def startgame(request, mine_type):
     user = userstats(request)
     _time_remaining = 100  # the player starts with 300 units of time
-    _no_mines = 10  # the game will consist of ten individual mines
+    _no_mines = 20  # the game will consist of ten individual mines
     _depth = 10  # each mine will be 10 blocks deep
     _max_yield = 100  # the player has the chance to mine a maximum of 100 gold
 
-    _yield = RandomYield(_depth, _max_yield)
+    if mine_type == 'California':
+        # print "California"
+        request.session['mine_type'] = 'California'
+        _yield = QuadraticYield(_depth, 25, 1, random.uniform(-2, 2))
+
+    elif mine_type == 'Yukon':
+        # print "Yukon"
+        request.session['mine_type'] = "Yukon"
+        span = [-15, 5]
+        k = random.randint(30, 50) + random.choice(span)
+        _yield = QuadraticYield(_depth, k, 1, 0)
+
+    elif mine_type == 'Brazil':
+        # print "Brazil"
+        request.session['mine_type'] = 'Brazil'
+        span = [10, 12, 15, 20]
+        _yield = QuadraticYield(_depth, random.choice(span), -1.5, 5)
+
+    elif mine_type == 'South Africa':
+        # print "South Africa"
+        request.session['mine_type'] = 'South Africa'
+        span = [0.2, 0.1, 0.3, 6, 8]
+        _yield = QuadraticYield(_depth, 50 + random.randint(-3, 3), random.choice(span), 0)
+
+    elif mine_type == 'Scotland':
+        # print "Scotland"
+        request.session['mine_type'] = 'Scotland'
+        _yield = QuadraticYield(_depth, random.randint(-10, 5) + 90, 0.7, random.randint(-8, -2))
+
+    elif mine_type == 'Victoria':
+        # print "Victoria"
+        request.session['mine_type'] = 'Victoria'
+        span = [10, -20]
+        _yield = QuadraticYield(_depth, random.randint(60, 100) + random.choice(span), 1, 3)
+    else:
+        print "Invalid mine in session variable"
+
     _cue = RandomCue(_max_yield, user['current_user'].equipment.modifier)
     _game = Game(_time_remaining,
                       _no_mines,
@@ -70,32 +107,6 @@ def startgame(request, mine_type):
                       _yield, _cue)
 
     _game.start()
-
-    if mine_type == 'California':
-        # print "California"
-        request.session['mine_type'] = 'California'
-
-    elif mine_type == 'Yukon':
-        # print "Yukon"
-        request.session['mine_type'] = "Yukon"
-
-    elif mine_type == 'Brazil':
-        # print "Brazil"
-        request.session['mine_type'] = 'Brazil'
-
-    elif mine_type == 'South Africa':
-        # print "South Africa"
-        request.session['mine_type'] = 'South Africa'
-
-    elif mine_type == 'Scotland':
-        # print "Scotland"
-        request.session['mine_type'] = 'Scotland'
-
-    elif mine_type == 'Victoria':
-        # print "Victoria"
-        request.session['mine_type'] = 'Victoria'
-    else:
-        print "Invalid mine in session variable"
 
     return _game
 
@@ -220,7 +231,7 @@ def otherlogin(context, request):
 def userprofile(request):
 
     userstat = userstats(request)
-    achieve = UserAchievements.objects.filter(user=userstats['current_user'])
+    achieve = UserAchievements.objects.filter(user=userstat['current_user'])
     context = contextget(request)
 
 
@@ -238,8 +249,12 @@ def move(request):
 
     request.session['time_remaining'] -= userstat['mod_vehicle']
     request.session['pointer'] = 0
+    request.session['mine_no'] += 1
     userstat['current_user'].mines += 1
     userstat['current_user'].save()
+
+    if request.session['time_remaining'] <= 0:
+        return HttpResponseRedirect(reverse('game_over'), context)
 
     _game_pickled = request.session['game_pickled']
     _game = pickle.loads(_game_pickled)
@@ -282,7 +297,7 @@ def gameover(request):
     request.session['game_started'] = False
     request.session['mine_type'] = ''
     request.session['time_remaining'] = 100
-    mine_no = (request.session['mine_no']) - 1
+    mine_no = request.session['mine_no']
     request.session['mine_no'] = 0
     day_gold = request.session['gold']
     total_gold = userstat['gold']
@@ -361,6 +376,7 @@ def game(request):
         _game_pickled = pickle.dumps(_game)
         request.session['game_pickled'] = _game_pickled
         request.session['pointer'] = 0
+        request.session['mine_no'] = 1
         request.session['time_remaining'] = 100
         _time_remaining = 100
         request.session['game_started'] = True
@@ -371,6 +387,9 @@ def game(request):
         _game_pickled = request.session['game_pickled']
         _game = pickle.loads(_game_pickled)
         _time_remaining = request.session['time_remaining']
+        
+        if _time_remaining <= 0:
+            return HttpResponseRedirect(reverse('game_over'), context)
 
     _location = request.session['location']
     _pointer = request.session['pointer']
@@ -428,11 +447,23 @@ def ajaxview(request):
 
     myResponse = {}
 
-    if gold_collected == -1:
+    if request.session['pointer'] == 10:
         myResponse['nextmine'] = True
 
     if _game.check_end():
         return HttpResponse(status=204)
+
+    myResponse['nuggets'] = 8
+    if gold_collected >= 20:
+        myResponse['nuggets'] = 5
+    if gold_collected >= 40:
+        myResponse['nuggets'] = 4
+    if gold_collected >= 60:
+        myResponse['nuggets'] = 3
+    if gold_collected >= 80:
+        myResponse['nuggets'] = 2
+    if gold_collected == 100:
+        myResponse['nuggets'] = 1
 
     myResponse['totalgold'] = user['gold']
     myResponse['timeremaining'] = request.session['time_remaining']
