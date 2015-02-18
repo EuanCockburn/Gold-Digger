@@ -25,6 +25,7 @@ SOCIAL_AUTH_LOGIN_REDIRECT_URL='gold_digger/'
 SOCIAL_AUTH_LOGIN_ERROR_URL='gold_digger/'
 SOCIAL_AUTH_FACEBOOK_KEY = '1537307233188668'
 SOCIAL_AUTH_FACEBOOK_SECRET ='0d20a87449f58cae002a7d429d775ed1'
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email', 'public_profile']
 SOCIAL_AUTH_SCOPE = ['email']
 AUTH_PROFILE_MODULE='gold_digger.UserProfile'
 
@@ -239,7 +240,7 @@ SOCIAL_AUTH_PIPELINE = (
 
     'social.pipeline.user.get_username',
     'social.pipeline.user.create_user',  #if user doesn't exist, create new one
-    'utility.add_new_profile', 
+    'gold_digger.utility.add_new_profile',
     'social.pipeline.social_auth.associate_user',
     'social.pipeline.social_auth.load_extra_data',
     'social.pipeline.user.user_details'
