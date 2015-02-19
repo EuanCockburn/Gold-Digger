@@ -459,7 +459,9 @@ def ajaxview(request):
     if _game.check_end():
         return HttpResponse(status=204)
 
-    myResponse['nuggets'] = 8
+    myResponse['nuggets'] = 7
+    if gold_collected > 0:
+        myResponse['nuggets'] = 6
     if gold_collected >= 20:
         myResponse['nuggets'] = 5
     if gold_collected >= 40:
