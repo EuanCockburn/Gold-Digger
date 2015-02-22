@@ -251,3 +251,12 @@ def should_stop(user, real_array, digcost, movecost):
             stop_here = i
 
     return stop_here
+
+
+#change the profile picture and return to the user profile page
+def change_profile_image(request):
+	user = UserProfile.objects.get(user=request.user)
+        if 'image' in request.FILES:
+		user.picture = request.FILES['image']
+		user.save()
+        return user_profile(request)

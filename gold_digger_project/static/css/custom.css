@@ -411,6 +411,21 @@ body{
 
 }
 
+#profileimg_well {
+    font-family: pixelfont;
+    font-size: large;
+    background-color: rgba(245, 222, 179, 0.26);
+    border-radius: 10px;
+    border-color: #000000;
+    margin-left: auto;
+    margin-right: auto;
+    border-width: 3px;
+    width: 400px;
+    padding-left: 2%;
+    padding-right: 2%;
+
+}
+
 #details_well {
     font-family: pixelfont;
     font-size: large;

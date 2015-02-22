@@ -27,3 +27,9 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ('picture', 'location')
+
+#Change image upload form
+class ProfileImageForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+    picture = forms.ImageField()

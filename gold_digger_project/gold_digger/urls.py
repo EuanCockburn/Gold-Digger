@@ -25,7 +25,9 @@ urlpatterns = patterns('',
         url(r'^game_over2/$', views.game_over2, name='game_over2'),
         url(r'^achievements/$', views.achievements, name='achievements'),
         url(r'^display_achievements/$', views.display_achievements, name='display_achievements'),
-        url(r'^egg/$', views.egg, name='egg')
+        url(r'^egg/$', views.egg, name='egg'),
+	
+	url(r'^change_profile_image/$', views.change_profile_image, name='change_profile_image')
 
 
 )

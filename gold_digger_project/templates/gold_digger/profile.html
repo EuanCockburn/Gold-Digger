@@ -57,7 +57,35 @@
         <div>
             <img id="profileimg" class="thumbnail" src="{{ user.picture.url }}"  alt="{{ user.user.username }}">
         </div>
+
+<!--Added new form in order to allow profile picture change. -->
+	<br></br>
+	
+ 	<table class="thumbnail" id="profileimg_well">
+	<tr>
+		<td style="text-align: center"><u>Change profile image   </u></td>
+	</tr>
+        <tr><td><br/></td></tr>
+
+        <tr>
+	<td> <form id="ProfileImageForm" method="post" action="/gold_digger/change_profile_image/" enctype="multipart/form-data">
+
+            {% csrf_token %}
+	 <p>
+                    <input id="id_image" type="file" class="" name="image">
+                </p>
+	</td>
+	</tr>
+        <tr>
+	<td align="right"> <button type="submit" name="submit" value="Change" class="btn btn-primary" >Update
+	</button> </td>
+	</form>
+	</tr>
+	</table>
+
+
         <h2 id="titoli">Profile</h2>
+
         <table class="thumbnail" id="details_well">
         <tr>
             <td>Username:</td>
