@@ -129,11 +129,15 @@
                                             </button><br><br>
                                     {% endif %}
 
-<!--Added for OAuth -->        <p><font size="3"> Or: </font></p>
+		<!--Added for OAuth -->       
+		<p></p>
+ 		<p id="or"><font size="3.5">OR</font></p>
 
-				<a href="{% url 'social:begin' 'facebook' %}?next={{ request.path }}"><img src="{% static "f2-150.png" %}" alt="Login with Facebook" ></a>
-				<a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}"> <img src="{% static "GoogleSignIn.png" %}" alt="Login with Google" style="width:157px;height:30px"></a>
-<!--Until here -->
+		<div style="text-align: center"><a href="{% url 'social:begin' 'facebook' %}?next={{ request.path }}"><img src="{% static "SignInWithFacebook.png" %}" alt="Login with Facebook" ></a></div>
+		<p></p>
+		<div style="text-align: center"><a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}"> <img src="{% static "SignInWithGoogle.png" %}" alt="Login with Google" ></a></div>
+		<!--Until here -->
+
 
                                 </fieldset>
                             </form>
