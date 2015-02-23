@@ -616,6 +616,31 @@ a:hover {
 
 }
 
+#or {
+    overflow: hidden;
+    text-align: center;
+}
+#or:before,
+#or:after {
+    background-color: #000;
+    content: "";
+    display: inline-block;
+    height: 1px;
+    position: relative;
+    vertical-align: middle;
+    width: 50%;
+}
+#or:before {
+    right: 0.5em;
+    margin-left: -50%;
+}
+#or:after {
+    left: 0.5em;
+    margin-right: -50%;
+}
+
+
+
 #name {
     font-family: pixelfont;
     font-weight: bolder;
