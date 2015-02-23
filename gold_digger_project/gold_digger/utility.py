@@ -10,7 +10,6 @@ from models import UserProfile, ScanningEquipment, DiggingEquipment, Vehicle, Us
 import pickle
 from django.core.urlresolvers import reverse
 import json
-from logger import event_logger
 
 #added for open auth:
 from social.pipeline.partial import partial
@@ -27,7 +26,6 @@ import random
 # ONLY GOOD FOR RETRIEVING VALUES NEEDS TO BE REWORKED
 def userstats(request):
     current_user = UserProfile.objects.get(user=request.user)
-
     userstat = {'current_user': current_user,
                 'scan': current_user.equipment.image.url,
                 'tool': current_user.tool.image.url,
@@ -54,72 +52,69 @@ def contextget(request):
 
 def startgame(request, mine_type):
     user = userstats(request)
-    _time_remaining = 100  # the player starts with 300 units of time
-    _no_mines = 20  # the game will consist of ten individual mines
-    _depth = 10  # each mine will be 10 blocks deep
+    time_remaining = 100  # the player starts with 300 units of time
+    no_mines = 20  # the game will consist of ten individual mines
+    depth = 10  # each mine will be 10 blocks deep
 
     if mine_type == 'California':
         # print "California"
         request.session['mine_type'] = 'California'
-        _yield = RandUniformAdjustYield(_depth, 25, 1, -2, 2)
-        _max_yield = 25
+        yield_array = RandUniformAdjustYield(depth, 25, 1, -2, 2)
+        max_yield = 25
 
     elif mine_type == 'Yukon':
         # print "Yukon"
         request.session['mine_type'] = "Yukon"
         list = [15, 20, 25, 35, 45, 50, 55]
-        _yield = RandMaxYield(_depth, 55, 1, 0, list)
-        _max_yield = 55
+        yield_array = RandMaxYield(depth, 55, 1, 0, list)
+        max_yield = 55
 
     elif mine_type == 'Brazil':
         # print "Brazil"
         request.session['mine_type'] = 'Brazil'
         span = [10, 12, 15, 20]
-        _yield = RandMaxYield(_depth, 20, -1.5, 5, span)
-        _max_yield = 20
+        yield_array = RandMaxYield(depth, 20, -1.5, 5, span)
+        max_yield = 20
 
     elif mine_type == 'South Africa':
         # print "South Africa"
         request.session['mine_type'] = 'South Africa'
         span = [0.2, 0.1, 0.3, 6, 8]
         list = [47, 48, 49, 50, 51, 52, 53]
-        _yield = RandMaxYield(_depth, 53, random.choice(span), 0, list)
-        _max_yield = 53
+        yield_array = RandMaxYield(depth, 53, random.choice(span), 0, list)
+        max_yield = 53
 
     elif mine_type == 'Scotland':
         # print "Scotland"
         request.session['mine_type'] = 'Scotland'
         list = [80, 83, 85, 87, 90, 92, 95]
-        _yield = RandMaxYield(_depth, 95, 0.7, random.randint(-8, -2), list)
-        _max_yield = 95
+        yield_array = RandMaxYield(depth, 95, 0.7, random.randint(-8, -2), list)
+        max_yield = 95
 
     elif mine_type == 'Victoria':
         # print "Victoria"
         request.session['mine_type'] = 'Victoria'
         list = [40, 50, 60, 70, 80, 90, 100, 110]
-        _yield = RandMaxYield(_depth, 110, 1, 3, list)
-        _max_yield = 110
+        yield_array = RandMaxYield(depth, 110, 1, 3, list)
+        max_yield = 110
     else:
         print "Invalid mine in session variable"
 
-    _cue = RandomCue(_max_yield, user['current_user'].equipment.modifier)
-    _game = Game(_time_remaining,
-                      _no_mines,
-                      _max_yield,
-                      _depth,
+    cue = RandomCue(max_yield, user['current_user'].equipment.modifier)
+    game = Game(time_remaining,
+                     no_mines,
+                      max_yield,
+                      depth,
                       user['current_user'].equipment.modifier,
                       user['modt_tool'],
                       user['mod_vehicle'],
-                      _yield, _cue)
+                      yield_array, cue)
 
-    _game.start()
-
-    return _game
+    game.start()
+    return game
 
 
 def loginhome(request):
-    print "Login Home"
-
     context = contextget(request)
 
     userstat = userstats(request)
@@ -138,8 +133,6 @@ def loginhome(request):
 
 
 def basichome(request):
-    print "Simple Home"
-
     context = contextget(request)
 
     request.session['time_remaining'] = 100
@@ -180,7 +173,6 @@ def postregister_valid(request, user_form, profile_form):
 
 
 def postregister_invalid(context, user_form, profile_form):
-        print user_form.errors, profile_form.errors
         return render_to_response('gold_digger/home.html', {'user_form': user_form, 'profile_form': profile_form,
                                                             'registered': registered}, context)
 
@@ -201,8 +193,6 @@ def postlogin(request):
             request.session['gold'] = 0
             request.session['mine_no'] = 0
             request.session['days'] = 1
-
-            event_logger.info('USER ' + username + ' LOGIN')
 
             return HttpResponseRedirect(reverse('game_choice2'), context)
         else:
@@ -262,11 +252,11 @@ def move(request):
     if request.session['time_remaining'] <= 0:
         return HttpResponseRedirect(reverse('game_over'), context)
 
-    _game_pickled = request.session['game_pickled']
-    _game = pickle.loads(_game_pickled)
-    _game.player_move()
-    _game_pickled = pickle.dumps(_game)
-    request.session['game_pickled'] = _game_pickled
+    game_pickled = request.session['game_pickled']
+    game = pickle.loads(game_pickled)
+    game.player_move()
+    game_pickled = pickle.dumps(game)
+    request.session['game_pickled'] = game_pickled
 
     return HttpResponseRedirect(reverse('game2'), context)
 
@@ -686,6 +676,4 @@ def add_new_profile( user, response, *args, **kwargs):
 	profile.equipment = ScanningEquipment.objects.get(pk=1)
         profile.vehicle = Vehicle.objects.get(pk=1)
         profile.tool = DiggingEquipment.objects.get(pk=1)
-
-	#probably need to add logger event for the new log???
         profile.save()

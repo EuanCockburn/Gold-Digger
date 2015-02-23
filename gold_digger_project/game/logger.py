@@ -7,7 +7,7 @@ class Logger:
 	number = 1
 
 	def __init__(self):
-		logging.basicConfig(filename='logs/example1.log',level=logging.INFO)
+		logging.basicConfig(filename='logs/example1.log',level=logging.ERROR)
 		self.logger = logging.getLogger()
 		self.logHandler = logging.StreamHandler()
 		self.formatter = jsonlogger.JsonFormatter()
@@ -18,7 +18,7 @@ class Logger:
 	    return object.__dict__
 
 	def log(self, object, type):
-		self.logger.info(json.dumps(Log(object, type),  default=self.jdefault))
+		self.logger.error(json.dumps(Log(object, type),  default=self.jdefault))
 
 class Log:
 	def __init__(self, object, type):
