@@ -31,7 +31,7 @@ def userstats(request):
                 'tool': current_user.tool.image.url,
                 'vehicle': current_user.vehicle.image.url,
                 'mod_scan': int(current_user.equipment.modifier * 100),
-                'mod_scan_l': int(current_user.equipment.modifier * 10) ,
+                'mod_scan_l': int(current_user.equipment.modifier * 10),
                 'modt_tool': current_user.tool.time_modifier,
                 'mod_vehicle': current_user.vehicle.modifier,
                 'gold': current_user.gold,
@@ -425,6 +425,7 @@ def ajaxview(request):
 
     # POSTED objects['pointer']
     gold_collected = _game.player_dig()
+    max_yield = _game.get_max_yield()
 
     request.session['pointer'] += 1
     request.session['time_remaining'] -= user['modt_tool']
@@ -442,20 +443,10 @@ def ajaxview(request):
     if _game.check_end():
         return HttpResponse(status=204)
 
-    myResponse['nuggets'] = 7
-    if gold_collected > 0:
-        myResponse['nuggets'] = 6
-    if gold_collected >= 20:
-        myResponse['nuggets'] = 5
-    if gold_collected >= 40:
-        myResponse['nuggets'] = 4
-    if gold_collected >= 60:
-        myResponse['nuggets'] = 3
-    if gold_collected >= 80:
-        myResponse['nuggets'] = 2
-    if gold_collected == 100:
-        myResponse['nuggets'] = 1
-
+    if gold_collected == 0:
+        myResponse['nuggets'] = 0
+    else:
+        myResponse['nuggets'] = ((6 * gold_collected)/max_yield) + 1
     myResponse['totalgold'] = user['gold']
     myResponse['timeremaining'] = request.session['time_remaining']
     myResponse['currentgold'] = request.session['gold']

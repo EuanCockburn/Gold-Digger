@@ -122,3 +122,6 @@ class Game:
         self.current_block = self.current_mine.get_current_block()
         self.time_remaining -= self.move_cost
         logger.log(self, log_type.MOVE)
+
+    def get_max_yield(self):
+        return self.max_yield
