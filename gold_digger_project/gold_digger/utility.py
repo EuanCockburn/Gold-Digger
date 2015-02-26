@@ -32,7 +32,6 @@ def userstats(request):
                 'vehicle': current_user.vehicle.image.url,
                 'mod_scan': int(current_user.equipment.modifier * 100),
                 'mod_scan_l': int(current_user.equipment.modifier * 10) ,
-                'mod_tool': int(current_user.tool.modifier * 100),
                 'modt_tool': current_user.tool.time_modifier,
                 'mod_vehicle': current_user.vehicle.modifier,
                 'gold': current_user.gold,
@@ -100,7 +99,7 @@ def startgame(request, mine_type):
     else:
         print "Invalid mine in session variable"
 
-    cue = RandomCue(max_yield, user['current_user'].equipment.modifier)
+    cue = AccurateCue(max_yield, user['current_user'].equipment.modifier)
     game = Game(time_remaining,
                      no_mines,
                       max_yield,
@@ -127,7 +126,6 @@ def loginhome(request):
                                                         'vehicle': userstat['vehicle'],
                                                         'gold': userstat['gold'],
                                                         'mod_scan': userstat['mod_scan'],
-                                                        'mod_tool': userstat['mod_tool'],
                                                         'modt_tool': userstat['modt_tool'],
                                                         'mod_vehicle': userstat['mod_vehicle']}, context)
 
@@ -219,7 +217,6 @@ def otherlogin(context, request):
                                                         'vehicle': userstat['vehicle'],
                                                         'gold': userstat['gold'],
                                                         'mod_scan': userstat['mod_scan'],
-                                                        'mod_tool': userstat['mod_tool'],
                                                         'modt_tool': userstat['modt_tool'],
                                                         'mod_vehicle': userstat['mod_vehicle']}, context)
 
@@ -233,9 +230,7 @@ def userprofile(request):
 
     return render_to_response('gold_digger/profile.html', {'user': userstat['current_user'],
                                                            'mod_scan': userstat['mod_scan'],
-                                                           'mod_tool': userstat['mod_tool'],
                                                            'modt_tool': userstat['modt_tool'],
-                                                           'mod_scan_l': userstat['mod_scan_l'],
                                                            'achievements': achieve}, context)
 
 
@@ -349,7 +344,6 @@ def gamechoice(request):
                                                                 'vehicle': user['vehicle'],
                                                                 'gold': user['gold'],
                                                                 'mod_scan': user['mod_scan'],
-                                                                'mod_tool': user['mod_tool'],
                                                                 'modt_tool': user['modt_tool'],
                                                                 'mod_vehicle': user['mod_vehicle']}, context)
 
@@ -400,7 +394,6 @@ def game(request):
                                                          'mine_no': _game.mine_position + 1,
                                                          'visibility': user['mod_scan_l'],
                                                          'mod_scan': user['mod_scan'],
-                                                         'mod_tool': user['mod_tool'],
                                                          'modt_tool': user['modt_tool'],
                                                          'mod_vehicle': user['mod_vehicle']}, context)
 

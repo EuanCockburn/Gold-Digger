@@ -28,7 +28,7 @@
     <div class="container-fluid">
         {% if user.is_authenticated %}
 
-            <div class="col-xs-6 col-md-3">
+            <div class="col-md-3">
                 <div class="well" id="mapstats">
                     <img src="/media/icons/Items/Chest.png"> Gold: <span id="gold">{{ gold }}</span>
                     <hr>
@@ -42,7 +42,7 @@
                         <tr>
                             <td>Tool:</td>
                             <td><img data-toggle="tooltip" data-placement="right"
-                                     title="Dig cost: {{ modt_tool }} Extracted: {{ mod_tool }}%" id="tool"
+                                     title="Dig cost: {{ modt_tool }}" id="tool"
                                      src="{{ tool }}"></td>
                         </tr>
                         <tr>
@@ -67,7 +67,7 @@
 
         {% else %}
             {% if not user.is_authenticated %}
-                <div class="col-xs-6 col-md-3">
+                <div class="col-md-3">
 
                     <div class="panel panel-default" id="homewell">
                         <div class="panel-body">
@@ -158,7 +158,7 @@
 
 
 
-        <div class="col-xs-6 col-md-7">
+        <div class="col-md-9">
             <div class="well" id="homewell">
                 {% if registered %}
                     <div style="float: right;" class="alert alert-dismissable alert-success">
@@ -175,7 +175,7 @@
                 <div >
                 <h2>Welcome to Gold Digger!</h2>
 
-                <p class="introp">Gold Digger is a strategy game where <b>your objecticve is to gather as much gold as
+                <p class="introp">Gold Digger is a strategy game where <b>your objective is to gather as much gold as
                     possible</b> in different
                     mines around the world.</p>
                 </div>
