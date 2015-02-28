@@ -18,7 +18,7 @@ class RandomCue(CueGenerator):
     def generate_array(self, yield_list):
         cue_list = []
         for i in range(len(yield_list)):
-            cue = randint(0, self.max_yield)
+            cue = randint(0, 9)
             cue_list.append(cue)
         return cue_list
 
@@ -29,18 +29,26 @@ class AccurateCue(CueGenerator):
 
     def generate_array(self, yield_list):
         cue_array = []
-        scan_inaccuracy = 1 - self.scan_accuracy
+        scan_inaccuracy = int((1 - self.scan_accuracy) * 10)
 
         for i in range(len(yield_list)):
             gold_yield = yield_list[i]
-            cue_inaccuracy = int(gold_yield * scan_inaccuracy)
-            cue_inaccuracy = randint(0, cue_inaccuracy)
-            effect = randint(0, 1)
+            cue = int(9*gold_yield/self.max_yield)
+            move = int(scan_inaccuracy / 2)
 
-            if effect == 0:
-                cue_array.append(gold_yield + cue_inaccuracy)
-            else:
-                cue_array.append(gold_yield - cue_inaccuracy)
+            shift = -1
+            while shift < 0 or shift > 9:
+                shift = randint(cue - move, cue + move)
+
+            cue_array.append(shift)
+            #cue_inaccuracy = int(gold_yield * scan_inaccuracy)
+            #cue_inaccuracy = randint(0, cue_inaccuracy)
+            #effect = randint(0, 1)
+
+           #if effect == 0:
+            #    cue_array.append(gold_yield + cue_inaccuracy)
+            #else:
+            #    cue_array.append(gold_yield - cue_inaccuracy)
 
         return cue_array
 

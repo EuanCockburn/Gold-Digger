@@ -99,7 +99,8 @@ def startgame(request, mine_type):
     else:
         print "Invalid mine in session variable"
 
-    cue = AccurateCue(max_yield, user['current_user'].equipment.modifier)
+    accuracy = user['current_user'].equipment.modifier
+    cue = AccurateCue(max_yield, accuracy)
     game = Game(time_remaining,
                      no_mines,
                       max_yield,

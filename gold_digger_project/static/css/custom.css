@@ -883,17 +883,32 @@ a:hover {
 }
 
 .flecks_4 {
- 	background: url(/media/mine/flecks_4.png) no-repeat center;
+ 	background: url(/media/mine/flecks_3-5.png) no-repeat center;
  	background-size: 100% 100%;
 }
 
 .flecks_5 {
- 	background: url(/media/mine/flecks_5.png) no-repeat center;
+ 	background: url(/media/mine/flecks_4.png) no-repeat center;
  	background-size: 100% 100%;
 }
 
 .flecks_6 {
+ 	background: url(/media/mine/flecks_5.png) no-repeat center;
+ 	background-size: 100% 100%;
+}
+
+.flecks_7 {
+ 	background: url(/media/mine/flecks_5-5.png) no-repeat center;
+ 	background-size: 100% 100%;
+}
+
+.flecks_8 {
  	background: url(/media/mine/flecks_6.png) no-repeat center;
+ 	background-size: 100% 100%;
+}
+
+.flecks_9 {
+ 	background: url(/media/mine/flecks_7.png) no-repeat center;
  	background-size: 100% 100%;
 }
 

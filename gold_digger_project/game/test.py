@@ -1,4 +1,5 @@
 from yieldgenerator import *
+from cuegenerator import *
 import random
 from functools import partial
 
@@ -35,9 +36,6 @@ print "Quadratic", quad, get_optimal(quad, dig, move)
 print "Exponential", ExponentialYield(depth, max_yield).generate_array(2.5, 4)
 print "Cubic", CubicYield(depth, max_yield).generate_array(0.5)
 
-
-print "\nCalifornia", RandUniformAdjustYield(depth, 25, 1, -2, 2).generate_array()
-
 span = [-15, 5]
 k = random.randint(30, 50) + random.choice(span)
 list = [15, 20, 25, 35, 45, 50, 55]
@@ -59,4 +57,8 @@ span = [10, -20]
 list = [40, 50, 60, 70, 80, 90, 100, 110]
 victoria = RandMaxYield(depth, 110, 1, 3, list).generate_array()
 print "Victoria", victoria, get_optimal(victoria, dig, move)
+
+cali = RandUniformAdjustYield(depth, 25, 1, -2, 2).generate_array()
+print "\nCalifornia", cali
+print AccurateCue(25, 0.8).generate_array(cali)
 

@@ -11,9 +11,9 @@ class Block:
     # initialise the instance by setting yield and cue
     def __init__(self, gold_yield, gold_cue, max_yield):
         self.yield_hint = (6 * gold_yield)/max_yield + 1
-        self.cue_hint = (6 * gold_cue)/max_yield + 1
+        self.cue_hint = gold_cue
         self.gold_yield = gold_yield
-        self.gold_cue = gold_cue
+        #self.gold_cue = gold_cue
         self.dug = False
 
     # Getters for the block instance's yield and cue
@@ -21,7 +21,7 @@ class Block:
         return self.gold_yield
 
     def get_cue(self):
-        return self.gold_cue
+        return self.cue_hint
 
     def dig(self):
         self.dug = True
