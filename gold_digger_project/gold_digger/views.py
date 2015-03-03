@@ -13,7 +13,6 @@ locations = ['California', 'Yukon', 'Brazil', 'South Africa', 'Scotland', 'Victo
 
 
 def home(request):
-
     try:
         return utility.loginhome(request)
     except:
@@ -49,7 +48,6 @@ def register(request):
 
 
 def user_login(request):
-
     if request.method == 'POST':
 
         return utility.postlogin(request)
@@ -68,30 +66,25 @@ def user_logout(request):
 
 @login_required
 def user_profile(request):
-
     return utility.userprofile(request)
 
 
 @login_required
 def move(request):
-
     return utility.move(request)
 
 
 @login_required
 def back_to_main(request):
-
     return utility.back2main(request)
 
 
 @login_required
 def game_over(request):
-
     return utility.gameover(request)
 
 
 def leaderboards(request):
-
     return utility.leaderboards(request)
 
 
@@ -107,7 +100,6 @@ def game2(request):
 
 @login_required
 def ajaxview(request):
-
     return utility.ajaxview(request)
 
 
@@ -117,7 +109,6 @@ def store(request):
 
 
 def ajax_upgrade(request):
-
     item_type = request.POST['up']
 
     if item_type == 'scan':
@@ -230,7 +221,7 @@ def egg(request):
         return HttpResponse(status=204)
 
 
-def should_stop(user, real_array, digcost, movecost):
+def should_stop(real_array, digcost, movecost):
     ycmax = 0.00
     cum_array = []
     yieldovercost = []
@@ -253,10 +244,11 @@ def should_stop(user, real_array, digcost, movecost):
     return stop_here
 
 
-#change the profile picture and return to the user profile page
+# change the profile picture and return to the user profile page
 def change_profile_image(request):
-	user = UserProfile.objects.get(user=request.user)
-        if 'image' in request.FILES:
-		user.picture = request.FILES['image']
-		user.save()
-        return user_profile(request)
+    user = utility.getuser(request)
+
+    if 'image' in request.FILES:
+        user.picture = request.FILES['image']
+        utility.usersave(user)
+    return user_profile(request)
