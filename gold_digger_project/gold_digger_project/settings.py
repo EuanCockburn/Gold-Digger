@@ -17,7 +17,7 @@ DATABASE_PATH = os.path.join(PROJECT_PATH, 'gold.db')
 
 CACHE_DIR = os.path.join(PROJECT_PATH, 'cache')
 
-#social auth implementation
+# social auth implementation
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '237155373117-620c76et2ad2ir3sk76ke53nb4qhq8np.apps.googleusercontent.com' 
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'B9AgBjDaeUGe5Q2OesbWowdZ' 
 LOGIN_REDIRECT_URL = '/'
@@ -56,16 +56,13 @@ DATABASES = {
     }
 }
 
-#Define caches to be used in storing sessions
-
+# Define caches to be used in storing sessions
+# Without the ability to use memcache local memory caching is the fastest option
+# No location need be defined as
 CACHES = {
-	'default' : {
-		'BACKEND' : 'django.core.cache.backends.filebased.FileBasedCache',
-		'LOCATION' : CACHE_DIR,
-		'OPTIONS' :{
-		'MAX_ENTRIES': 1000
-		}
-	}
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
+    }
 }
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
@@ -222,12 +219,12 @@ LOGGING = {
 
 
 
-#open auth implementation: try to associate with an existing user, else create new user
+# open auth implementation: try to associate with an existing user, else create new user
 AUTHENTICATION_BACKENDS = (            
-'social.backends.facebook.FacebookOAuth2',
-'social.backends.google.GoogleOAuth2',
-'social.backends.twitter.TwitterOAuth',
-'django.contrib.auth.backends.ModelBackend',
+    'social.backends.facebook.FacebookOAuth2',
+    'social.backends.google.GoogleOAuth2',
+    'social.backends.twitter.TwitterOAuth',
+    'django.contrib.auth.backends.ModelBackend',
 )
 
 SOCIAL_AUTH_PIPELINE = (
