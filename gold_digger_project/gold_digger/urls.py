@@ -27,7 +27,8 @@ urlpatterns = patterns('',
         url(r'^display_achievements/$', views.display_achievements, name='display_achievements'),
         url(r'^egg/$', views.egg, name='egg'),
 	
-	url(r'^change_profile_image/$', views.change_profile_image, name='change_profile_image')
+		url(r'^change_profile_image/$', views.change_profile_image, name='change_profile_image'),
+		url(r'^post_to_wall/$', views.post_to_wall, name='post_to_wall'),
 
 
 )

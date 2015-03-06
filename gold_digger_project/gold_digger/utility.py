@@ -1,4 +1,5 @@
 from game.game import *
+from game.game import *
 from game.yieldgenerator import *
 from game.cuegenerator import *
 from django.http import HttpResponse, HttpResponseRedirect
@@ -351,7 +352,7 @@ def back2main(request):
     return HttpResponseRedirect(reverse('home'), context)
 
 
-def gameover(request):
+def gameover(request, is_facebook_user):
     user = getuser(request)
     context = contextget(request)
     currentgold = getgold(user)
@@ -380,7 +381,12 @@ def gameover(request):
 
     if currentgold < 40:
         return HttpResponseRedirect(reverse('game_over2'), context)
-
+		
+	try:
+        is_facebook_user=request.user.social_auth.filter( provider='facebook',)[0]
+		is_facebook_user=1
+	except:
+		is_facebook_user=0
     return render_to_response('gold_digger/game_over.html', {'day_gold': day_gold,
                                                              'total_gold': total_gold,
                                                              'mine_no': mine_no,

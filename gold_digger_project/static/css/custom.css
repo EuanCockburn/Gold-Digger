@@ -1789,4 +1789,12 @@ a:hover {
 
 }
 
+#Share_score_msg1{
+	font-size: 20pt;
+	color: #4169E1;
+}
 
+#Share_score_msg2{
+	font-size: 25pt;
+	color: #4169E1;
+}
