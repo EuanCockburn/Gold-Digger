@@ -50,10 +50,10 @@
 <p id="dayscore"><img height="70px" src="/media/icons/Items/Chest.png">Total Gold: <span class="finalscore animated tada">{{ total_gold }}</span>  <img  height="60px" src="/static/nugget.png"> Day's Gold: <span class="finalscore animated tada">{{ day_gold }}</span><br><br>Mines: <span class="finalscore animated tada">{{ mine_no }}</span></p>
 </div>
 
-<p id="Share_score_msg1">Want all your friends to know how much gold you dug today?&gt;</p>
+<p id="Share_score_msg1">Want all your friends to know how much gold you dug today?</p>
 <p id="Share_score_msg2">Share your score on Facebook!</p>
 	{% if is_facebook_user %}
-		<form id="ShareScore" method="post" action="/gold_digger/post_to_wall/">
+		<form id="ShareScore" method="post" action="/gold_digger/share/">
 			{% csrf_token %}
 			<img src="{% static "arrow.png" %}">
 		<button type="submit" name="share" class="btn btn-primary" ><img src="{% static "Share.png" %}" alt="Share on Facebook"></button>

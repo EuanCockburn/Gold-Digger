@@ -11,6 +11,7 @@ from models import UserProfile, ScanningEquipment, DiggingEquipment, Vehicle, Us
 import pickle
 from django.core.urlresolvers import reverse
 import json
+import facebook 
 
 # added for open auth:
 from social.pipeline.partial import partial
@@ -352,7 +353,7 @@ def back2main(request):
     return HttpResponseRedirect(reverse('home'), context)
 
 
-def gameover(request, is_facebook_user):
+def gameover(request):
     user = getuser(request)
     context = contextget(request)
     currentgold = getgold(user)
@@ -390,7 +391,8 @@ def gameover(request, is_facebook_user):
     return render_to_response('gold_digger/game_over.html', {'day_gold': day_gold,
                                                              'total_gold': total_gold,
                                                              'mine_no': mine_no,
-                                                             'cost': cost}, context)
+                                                             'cost': cost, 
+															 'is_facebook_user': is_facebook_user}, context)
 
 
 def leaderboards(request):
@@ -756,3 +758,15 @@ def add_new_profile(user, response, *args, **kwargs):
     profile.vehicle = Vehicle.objects.get(pk=1)
     profile.tool = DiggingEquipment.objects.get(pk=1)
     profile.save()
+	
+	
+def post_to_wall(request):
+    social_user = request.user.social_auth.filter( provider='facebook',)[0]
+    day_gold = request.session['gold']
+    attachment={}
+    attachment['name'] ="Gold Digger game "
+    attachment['link']="http://goldrush.pythonanywhere.com/gold_digger/"
+    msg = "Lucky day! Just dug "+str(day_gold)+" gold nuggets today! Check it out here: "
+    graph = facebook.GraphAPI(social_user.extra_data['access_token'])
+    graph.put_object("me", "feed", message=msg, **attachment)
+    return game_over(request)

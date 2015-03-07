@@ -8,11 +8,10 @@ from models import UserProfile, UserAchievements, Achievements
 from django.core.urlresolvers import reverse
 import utility
 import json
-import facebook 
+
  
 
 locations = ['California', 'Yukon', 'Brazil', 'South Africa', 'Scotland', 'Victoria']
-is_facebook_user=0;
 
 def home(request):
     try:
@@ -83,7 +82,7 @@ def back_to_main(request):
 
 @login_required
 def game_over(request):
-    return utility.gameover(request, is_facebook_user)
+    return utility.gameover(request)
 
 
 def leaderboards(request):
@@ -256,13 +255,5 @@ def change_profile_image(request):
     return user_profile(request)
 	
 #post score to Facebook walll
-def post_to_wall(request):
-    social_user = request.user.social_auth.filter( provider='facebook',)[0]
-    day_gold = request.session['gold']
-    attachment={}
-    attachment['name'] ="Gold Digger game "
-    attachment['link']="http://goldrush.pythonanywhere.com/gold_digger/"
-    msg = "Lucky day! Just dug "+str(day_gold)+" gold nuggets today! Check it out here: "
-    graph = facebook.GraphAPI(social_user.extra_data['access_token'])
-    graph.put_object("me", "feed", message=msg, **attachment)
-    return game_over(request)
+def share(request):
+    return utility.post_to_wall(request)
