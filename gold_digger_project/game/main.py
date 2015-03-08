@@ -15,7 +15,7 @@ yield_generator = RandomYield(depth, max_yield)
 cue_generator = AccurateCue(max_yield, scan_accuracy)
 
 game = Game(time_remaining, no_mines, max_yield, depth, scan_accuracy, dig_cost, move_cost,
-            yield_generator, cue_generator)
+            yield_generator, cue_generator, "test", "test")
 
 game.start()
 

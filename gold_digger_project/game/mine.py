@@ -10,6 +10,7 @@ class Mine:
         self.block_position = 0
         self.block_list = []
         self.optimal = -1
+        self.optimal_yield = 0
 
     # function to populate the mine with blocks that each have a certain yield and cue displayed to the player
     def populate_mine(self, yield_list, cue_list, dig, move, max_yield):
@@ -19,6 +20,7 @@ class Mine:
             new_block = Block(gold_yield, gold_cue, max_yield)
             self.block_list.append(new_block)
         self.optimal = self.calculate_optimal(yield_list, dig, move)
+        self.optimal_yield = self.calculate_optimal_yield(self.optimal, yield_list)
 
     # function to check if the player has reached the bottom of the mine
     def mine_exhausted(self):
@@ -59,3 +61,12 @@ class Mine:
                 max_gradient_pos = i
 
         return max_gradient_pos
+
+    @staticmethod
+    def calculate_optimal_yield(optimal, yield_array):
+
+        yield_sum = 0
+        for i in range(0, optimal + 1):
+            yield_sum += yield_array[i]
+
+        return yield_sum

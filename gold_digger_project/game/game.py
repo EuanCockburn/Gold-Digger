@@ -115,12 +115,14 @@ class Game:
         self.current_mine.inc_block_pos()
         if not self.current_mine.mine_exhausted():
             self.current_block = self.current_mine.get_current_block()
-        self.gold_in_mine += self.gold_collected
+        self.gold_in_mine += gold_collected
         return gold_collected
 
     # function that moves the player to the next available mine and puts them back above ground (block 0)
     def player_move(self):
-        event_logger.info('USER ' + self.player + ' MINE ' + self.name + ' GOLD ' + self.gold_in_mine + ' OPTIMAL ' + self.mine_list[self.mine_position].optimal)
+        msg = 'USER ', self.player, ' MINE ', self.name, ' GOLD ', self.gold_in_mine, \
+              ' OPTIMAL ', self.mine_list[self.mine_position].optimal
+        event_logger.info(msg)
         self.mine_position += 1
         self.current_mine = self.mine_list[self.mine_position]
         self.current_block = self.current_mine.get_current_block()
@@ -128,3 +130,23 @@ class Game:
 
     def get_max_yield(self):
         return self.max_yield
+
+    def get_optimal_game_yield(self):
+        optimal_sum = 0
+        time = self.time_remaining;
+
+        i = 0
+        while time > 0:
+            current_mine = self.mine_list[i];
+            if (current_mine.optimal * self.dig_cost) < time:
+                optimal_sum += self.mine_list[i].optimal_yield
+                time -= current_mine.optimal * self.dig_cost
+                i += 1
+                time -= self.move_cost
+            else:
+                for j in range(0, self.depth):
+                    optimal_sum += current_mine.block_list[j].get_yield()
+                    time -= self.dig_cost
+                    if time <= 0:
+                        break
+        return optimal_sum

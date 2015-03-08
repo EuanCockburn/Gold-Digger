@@ -365,12 +365,15 @@ def gameover(request):
         user.all_time_max_gold = currentgold
 
     # Updating user values
+    print user.gold
     user.gold += request.session['gold']
+    print user.gold
     user.mines += 1
     user.games_played += 1
     request.session['days'] += 1
     user.all_time_gold += request.session['gold']
     user.average = user.all_time_gold / getmines(user)
+    user.save
     usersave(user)
 
     request.session['game_started'] = False
