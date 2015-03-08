@@ -4,13 +4,13 @@ from cuegenerator import *
 
 # import cache and pickle functioning
 import pickle
-from logger import logger, log_type
+from logger import event_logger
 
 # class to represent an instance of a game
 class Game:
 
     def __init__(self, time_remaining, no_mines, max_yield, depth, scan_accuracy, dig_cost, move_cost,
-                 yield_generator, cue_generator):
+                 yield_generator, cue_generator, name, player):
         self.mine_list = []
         self.mine_position = 0
         self.player_gold = 0
@@ -25,6 +25,9 @@ class Game:
         self.current_block = None
         self.yield_generator = yield_generator
         self.cue_generator = cue_generator
+        self.name = name
+        self.gold_in_mine = 0
+        self.player = player
 
         mine_factory = MineFactory(self.yield_generator, self.cue_generator)
         for i in range(self.no_mines):
@@ -44,7 +47,7 @@ class Game:
     def start(self):
         self.current_mine = self.mine_list[self.mine_position]
         self.current_block = self.current_mine.get_current_block()
-        logger.log(self, log_type.START_GAME)
+
 
     def get_current_blocks(self):
         return self.mine_list[self.mine_position].block_list
@@ -112,16 +115,16 @@ class Game:
         self.current_mine.inc_block_pos()
         if not self.current_mine.mine_exhausted():
             self.current_block = self.current_mine.get_current_block()
-        logger.log(self, log_type.DIG)
+        self.gold_in_mine += self.gold_collected
         return gold_collected
 
     # function that moves the player to the next available mine and puts them back above ground (block 0)
     def player_move(self):
+        event_logger.info('USER ' + self.player + ' MINE ' + self.name + ' GOLD ' + self.gold_in_mine + ' OPTIMAL ' + self.mine_list[self.mine_position].optimal)
         self.mine_position += 1
         self.current_mine = self.mine_list[self.mine_position]
         self.current_block = self.current_mine.get_current_block()
         self.time_remaining -= self.move_cost
-        logger.log(self, log_type.MOVE)
 
     def get_max_yield(self):
         return self.max_yield

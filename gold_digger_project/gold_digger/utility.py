@@ -21,6 +21,7 @@ from requests import request
 from views import *
 import random
 from django.core.cache import cache
+from game.logger import event_logger
 
 
 def getuser(request):
@@ -179,7 +180,9 @@ def startgame(request, mine_type):
                 getmodt_tool(user),
                 getmod_vehicle(user),
                 yield_array,
-                cue)
+                cue,
+                mine_type,
+                user)
 
     # Store the generated game in the cache
     store_game_incache(id, game)
@@ -382,17 +385,16 @@ def gameover(request):
 
     if currentgold < 40:
         return HttpResponseRedirect(reverse('game_over2'), context)
-		
-	try:
+    try:
         is_facebook_user=request.user.social_auth.filter( provider='facebook',)[0]
-		is_facebook_user=1
-	except:
-		is_facebook_user=0
+        is_facebook_user=1
+    except:
+        is_facebook_user=0
     return render_to_response('gold_digger/game_over.html', {'day_gold': day_gold,
                                                              'total_gold': total_gold,
                                                              'mine_no': mine_no,
                                                              'cost': cost, 
-															 'is_facebook_user': is_facebook_user}, context)
+                                                             'is_facebook_user': is_facebook_user}, context)
 
 
 def leaderboards(request):
@@ -442,7 +444,7 @@ def gamechoice(request):
 def game(request):
     context = contextget(request)
 
-    user = getuser()
+    user = getuser(request)
 
     if request.session['mine_type'] == '':
         mine_type = request.session['location']
