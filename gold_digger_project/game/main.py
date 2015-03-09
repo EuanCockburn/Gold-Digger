@@ -4,21 +4,23 @@ from cuegenerator import *
 from time import sleep
 
 
-time_remaining = 200                                    # the player starts with 300 units of time
-no_mines = 10                                           # the game will consist of ten individual mines
+time_remaining = 100                                    # the player starts with 300 units of time
+no_mines = 20                                           # the game will consist of ten individual mines
 depth = 10                                              # each mine will be 10 blocks deep
 max_yield = 100                                         # the player has the chance to mine a maximum of 100 gold
 scan_accuracy = 0.6                                     # the player's equipment has a predetermined accuracy
 dig_cost = 10                                           # the amount of time it takes to dig
-move_cost = 60                                          # the amount of time it takes to move to another mine
-yield_generator = RandomYield(depth, max_yield)
+move_cost = 15                                          # the amount of time it takes to move to another mine
+span = [40, 50, 60, 70, 80, 90, 100, 110]
+yield_array = RandMaxYield(depth, 110, 1, 3, span)
 cue_generator = AccurateCue(max_yield, scan_accuracy)
 
 game = Game(time_remaining, no_mines, max_yield, depth, scan_accuracy, dig_cost, move_cost,
-            yield_generator, cue_generator, "test", "test")
+            yield_array, cue_generator, "test", "test")
 
 game.start()
 
+print "Yield", game.get_optimal_game_yield()
 print "\nWelcome to Gold Digger! Try to collect as much gold as you can within the time limit!\n"
 
 while not game.check_end():

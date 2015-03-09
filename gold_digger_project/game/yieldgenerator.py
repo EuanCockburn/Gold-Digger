@@ -1,4 +1,4 @@
-from random import *
+import random
 
 # class to construct an array of gold return for each level or block within a mine
 
@@ -16,7 +16,7 @@ class ConstantYield(YieldGenerator):
 
     def generate_array(self):
         yield_list = []
-        gold_yield = randint(0, self.max_yield)
+        gold_yield = random.randint(0, self.max_yield)
         for i in range(0, self.depth):
             yield_list.append(gold_yield)
         return yield_list
@@ -29,7 +29,7 @@ class RandomYield(YieldGenerator):
     def generate_array(self):
         yield_list = []
         for i in range(self.depth):
-            gold_yield = randint(0, self.max_yield)
+            gold_yield = random.randint(0, self.max_yield)
             yield_list.append(gold_yield)
         return yield_list
 
@@ -96,7 +96,7 @@ class RandUniformAdjustYield(YieldGenerator):
 
     def generate_array(self):
         yield_list = []
-        k = uniform(self.adjust_a, self.adjust_b)
+        k = random.uniform(self.adjust_a, self.adjust_b)
         for i in range(self.depth):
             yield_x = QuadraticYield.quadratic_graph(self.slope, k, self.max_yield, i)
             yield_list.append(yield_x)
@@ -123,7 +123,7 @@ class RandMaxYield(YieldGenerator):
 
     def generate_array(self):
         yield_list = []
-        k = choice(self.list)
+        k = random.choice(self.list)
         for i in range(self.depth):
             yield_x = QuadraticYield.quadratic_graph(self.slope, self.adjust, k, i)
             yield_list.append(yield_x)

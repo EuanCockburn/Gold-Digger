@@ -133,8 +133,8 @@ def startgame(request, mine_type):
         elif mine_type == 'Yukon':
             # print "Yukon"
             request.session['mine_type'] = "Yukon"
-            list = [15, 20, 25, 35, 45, 50, 55]
-            yield_array = RandMaxYield(depth, 55, 1, 0, list)
+            span = [15, 20, 25, 35, 45, 50, 55]
+            yield_array = RandMaxYield(depth, 55, 1, 0, span)
             max_yield = 55
 
         elif mine_type == 'Brazil':
@@ -148,22 +148,22 @@ def startgame(request, mine_type):
             # print "South Africa"
             request.session['mine_type'] = 'South Africa'
             span = [0.2, 0.1, 0.3, 6, 8]
-            list = [47, 48, 49, 50, 51, 52, 53]
-            yield_array = RandMaxYield(depth, 53, random.choice(span), 0, list)
+            span2 = [47, 48, 49, 50, 51, 52, 53]
+            yield_array = RandMaxYield(depth, 53, random.choice(span), 0, span2)
             max_yield = 53
 
         elif mine_type == 'Scotland':
             # print "Scotland"
             request.session['mine_type'] = 'Scotland'
-            list = [80, 83, 85, 87, 90, 92, 95]
-            yield_array = RandMaxYield(depth, 95, 0.7, random.randint(-8, -2), list)
+            span = [80, 83, 85, 87, 90, 92, 95]
+            yield_array = RandMaxYield(depth, 95, 0.7, random.randint(-8, -2), span)
             max_yield = 95
 
         elif mine_type == 'Victoria':
             # print "Victoria"
             request.session['mine_type'] = 'Victoria'
-            list = [40, 50, 60, 70, 80, 90, 100, 110]
-            yield_array = RandMaxYield(depth, 110, 1, 3, list)
+            span = [40, 50, 60, 70, 80, 90, 100, 110]
+            yield_array = RandMaxYield(depth, 110, 1, 3, span)
             max_yield = 110
         else:
             print "Invalid mine in session variable"
@@ -390,6 +390,7 @@ def gameover(request):
         is_facebook_user=1
     except:
         is_facebook_user=0
+
     return render_to_response('gold_digger/game_over.html', {'day_gold': day_gold,
                                                              'total_gold': total_gold,
                                                              'mine_no': mine_no,
@@ -442,6 +443,7 @@ def gamechoice(request):
 
 
 def game(request):
+
     context = contextget(request)
 
     user = getuser(request)
@@ -470,8 +472,8 @@ def game(request):
         _game = pickle.loads(_game_pickled)
         _time_remaining = request.session['time_remaining']
 
-        if _time_remaining <= 0:
-            return HttpResponseRedirect(reverse('game_over'), context)
+    if request.session['time_remaining'] <= 0:
+        return HttpResponseRedirect(reverse('game_over'), context)
 
     _location = request.session['location']
     _pointer = request.session['pointer']
@@ -532,7 +534,7 @@ def ajaxview(request):
     if request.session['pointer'] == 10:
         myResponse['nextmine'] = True
 
-    if _game.check_end():
+    if request.session['time_remaining'] <= 0:
         return HttpResponse(status=204)
 
     if gold_collected == 0:
