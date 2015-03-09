@@ -4,6 +4,9 @@ from GChartWrapper import Pie
 
 
 def index(request):
+    with open('logs/log') as f:
+        c = f.readlines()
+        print c
     context = RequestContext(request)
     context_dict = {'pie': Pie([10, 10]).title('Male/Female ratio').color('red','lime').label('male', 'female')}
     return render_to_response('analytics/index.html', context_dict, context)

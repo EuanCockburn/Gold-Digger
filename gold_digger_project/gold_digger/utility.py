@@ -114,6 +114,7 @@ def contextget(request):
 
 def startgame(request, mine_type):
     user = getuser(request)
+    print user
     time_remaining = 100  # the player starts with 300 units of time
     no_mines = 20  # the game will consist of ten individual mines
     depth = 10  # each mine will be 10 blocks deep
@@ -172,6 +173,8 @@ def startgame(request, mine_type):
 
     cue = AccurateCue(max_yield, accuracy)
 
+    user = UserProfile.objects.get(user=request.user)
+
     game = Game(time_remaining,
                 no_mines,
                 max_yield,
@@ -182,7 +185,7 @@ def startgame(request, mine_type):
                 yield_array,
                 cue,
                 mine_type,
-                user)
+                user.user.username)
 
     # Store the generated game in the cache
     store_game_incache(id, game)
@@ -331,15 +334,15 @@ def move(request):
     request.session['mine_no'] += 1
     user.mines += 1
     usersave(user)
-
-    if request.session['time_remaining'] <= 0:
-        return HttpResponseRedirect(reverse('game_over'), context)
-
+    
     game_pickled = request.session['game_pickled']
     game = pickle.loads(game_pickled)
     game.player_move()
     game_pickled = pickle.dumps(game)
     request.session['game_pickled'] = game_pickled
+
+    if request.session['time_remaining'] <= 0:
+        return HttpResponseRedirect(reverse('game_over'), context)
 
     return HttpResponseRedirect(reverse('game2'), context)
 

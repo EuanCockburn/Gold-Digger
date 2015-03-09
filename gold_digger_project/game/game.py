@@ -28,6 +28,7 @@ class Game:
         self.name = name
         self.gold_in_mine = 0
         self.player = player
+        print self.player
 
         mine_factory = MineFactory(self.yield_generator, self.cue_generator)
         for i in range(self.no_mines):
@@ -120,9 +121,8 @@ class Game:
 
     # function that moves the player to the next available mine and puts them back above ground (block 0)
     def player_move(self):
-        msg = 'USER ', self.player, ' MINE ', self.name, ' GOLD ', self.gold_in_mine, \
-              ' OPTIMAL ', self.mine_list[self.mine_position].optimal
-        event_logger.info(msg)
+        event_logger.info('USER ' + str(self.player) + ' MINE ' + str(self.name) + ' GOLD ' + str(self.gold_in_mine) + ' OPTIMAL ' \
+        + str(self.mine_list[self.mine_position].optimal) + ' MOVE ' + str(self.mine_list[self.mine_position].block_position))
         self.mine_position += 1
         self.current_mine = self.mine_list[self.mine_position]
         self.current_block = self.current_mine.get_current_block()
