@@ -326,6 +326,7 @@ def userprofile(request):
 
 
 def move(request):
+
     user = getuser(request)
     context = contextget(request)
 
