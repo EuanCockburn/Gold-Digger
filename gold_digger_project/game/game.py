@@ -49,26 +49,8 @@ class Game:
         self.current_mine = self.mine_list[self.mine_position]
         self.current_block = self.current_mine.get_current_block()
 
-
     def get_current_blocks(self):
         return self.mine_list[self.mine_position].block_list
-
-    #Function to store game in cache
-    def store_game_incache(id, game):
-        cache.set(id,pickle.dumps(game), 500)
-
-    #Fucntion to retrieve game from cache
-    def get_game_incache(id):
-        game = pickle.loads(cache.get(id))
-        return game
-    
-    #Functions used for retrieving game
-    def retrieve_game(id):
-	return get_game_incache(id)
-   
-    #Fucntion to call game storage in cache
-    def store_game(id, game):
-	store_game_incache(id, game)
 
     # function to return the current state of the game
     def get_state(self):
