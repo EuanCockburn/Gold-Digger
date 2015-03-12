@@ -11,7 +11,7 @@ from models import UserProfile, ScanningEquipment, DiggingEquipment, Vehicle, Us
 import pickle
 from django.core.urlresolvers import reverse
 import json
-import facebook 
+import facebook
 
 # added for open auth:
 from social.pipeline.partial import partial
@@ -118,56 +118,51 @@ def startgame(request, mine_type):
     time_remaining = 100  # the player starts with 300 units of time
     no_mines = 20  # the game will consist of ten individual mines
     depth = 10  # each mine will be 10 blocks deep
-    id = mine_type + '_new' # Define cache id
+    sess_id = request.session._session_key  # Define cache id as session key
 
-    # Check if the object already exists in the cache
-    if incache(id):
-        # Return the cached game if it exists
-        return get_game_incache(id)
+    if mine_type == 'California':
+        # print "California"
+        request.session['mine_type'] = 'California'
+        yield_array = RandUniformAdjustYield(depth, 25, 1, -2, 2)
+        max_yield = 25
+
+    elif mine_type == 'Yukon':
+        # print "Yukon"
+        request.session['mine_type'] = "Yukon"
+        span = [15, 20, 25, 35, 45, 50, 55]
+        yield_array = RandMaxYield(depth, 55, 1, 0, span)
+        max_yield = 55
+
+    elif mine_type == 'Brazil':
+        # print "Brazil"
+        request.session['mine_type'] = 'Brazil'
+        span = [10, 12, 15, 20]
+        yield_array = RandMaxYield(depth, 20, -1.5, 5, span)
+        max_yield = 20
+
+    elif mine_type == 'South Africa':
+        # print "South Africa"
+        request.session['mine_type'] = 'South Africa'
+        span = [0.2, 0.1, 0.3, 6, 8]
+        span2 = [47, 48, 49, 50, 51, 52, 53]
+        yield_array = RandMaxYield(depth, 53, random.choice(span), 0, span2)
+        max_yield = 53
+
+    elif mine_type == 'Scotland':
+        # print "Scotland"
+        request.session['mine_type'] = 'Scotland'
+        span = [80, 83, 85, 87, 90, 92, 95]
+        yield_array = RandMaxYield(depth, 95, 0.7, random.randint(-8, -2), span)
+        max_yield = 95
+
+    elif mine_type == 'Victoria':
+        # print "Victoria"
+        request.session['mine_type'] = 'Victoria'
+        span = [40, 50, 60, 70, 80, 90, 100, 110]
+        yield_array = RandMaxYield(depth, 110, 1, 3, span)
+        max_yield = 110
     else:
-        if mine_type == 'California':
-            # print "California"
-            request.session['mine_type'] = 'California'
-            yield_array = RandUniformAdjustYield(depth, 25, 1, -2, 2)
-            max_yield = 25
-
-        elif mine_type == 'Yukon':
-            # print "Yukon"
-            request.session['mine_type'] = "Yukon"
-            span = [15, 20, 25, 35, 45, 50, 55]
-            yield_array = RandMaxYield(depth, 55, 1, 0, span)
-            max_yield = 55
-
-        elif mine_type == 'Brazil':
-            # print "Brazil"
-            request.session['mine_type'] = 'Brazil'
-            span = [10, 12, 15, 20]
-            yield_array = RandMaxYield(depth, 20, -1.5, 5, span)
-            max_yield = 20
-
-        elif mine_type == 'South Africa':
-            # print "South Africa"
-            request.session['mine_type'] = 'South Africa'
-            span = [0.2, 0.1, 0.3, 6, 8]
-            span2 = [47, 48, 49, 50, 51, 52, 53]
-            yield_array = RandMaxYield(depth, 53, random.choice(span), 0, span2)
-            max_yield = 53
-
-        elif mine_type == 'Scotland':
-            # print "Scotland"
-            request.session['mine_type'] = 'Scotland'
-            span = [80, 83, 85, 87, 90, 92, 95]
-            yield_array = RandMaxYield(depth, 95, 0.7, random.randint(-8, -2), span)
-            max_yield = 95
-
-        elif mine_type == 'Victoria':
-            # print "Victoria"
-            request.session['mine_type'] = 'Victoria'
-            span = [40, 50, 60, 70, 80, 90, 100, 110]
-            yield_array = RandMaxYield(depth, 110, 1, 3, span)
-            max_yield = 110
-        else:
-            print "Invalid mine in session variable"
+        print "Invalid mine in session variable"
 
     accuracy = getaccuracy(user)
 
@@ -188,7 +183,7 @@ def startgame(request, mine_type):
                 user.user.username)
 
     # Store the generated game in the cache
-    store_game_incache(id, game)
+    store_game_incache(sess_id, game)
 
     game.start()
 
@@ -228,7 +223,7 @@ def incache(id):
 
 
 def store_game_incache(id, game):
-    cache.set(id, pickle.dumps(game), 500)
+    cache.set(id, pickle.dumps(game), 600)
 
 
 def get_game_incache(id):
@@ -326,7 +321,6 @@ def userprofile(request):
 
 
 def move(request):
-
     user = getuser(request)
     context = contextget(request)
 
@@ -335,12 +329,19 @@ def move(request):
     request.session['mine_no'] += 1
     user.mines += 1
     usersave(user)
-    
-    game_pickled = request.session['game_pickled']
-    game = pickle.loads(game_pickled)
+    sess_id = request.session._session_key
+    # If the game exists in teh cache retrieve it from there
+    if incache(sess_id):
+        game = get_game_incache(sess_id)
+    # Otherwise a game has not been started so create a new game for the current mine_type
+    else:
+        mine_type = request.session['mine_type']
+        game = startgame(request, mine_type)
+
+    # Conduct move and store changes in the cache
     game.player_move()
-    game_pickled = pickle.dumps(game)
-    request.session['game_pickled'] = game_pickled
+    store_game_incache(sess_id, game)
+    # request.session['game_pickled'] = game_pickled
 
     if request.session['time_remaining'] <= 0:
         return HttpResponseRedirect(reverse('game_over'), context)
@@ -390,15 +391,15 @@ def gameover(request):
     if currentgold < 40:
         return HttpResponseRedirect(reverse('game_over2'), context)
     try:
-        is_facebook_user=request.user.social_auth.filter( provider='facebook',)[0]
-        is_facebook_user=1
+        is_facebook_user = request.user.social_auth.filter(provider='facebook', )[0]
+        is_facebook_user = 1
     except:
-        is_facebook_user=0
+        is_facebook_user = 0
 
     return render_to_response('gold_digger/game_over.html', {'day_gold': day_gold,
                                                              'total_gold': total_gold,
                                                              'mine_no': mine_no,
-                                                             'cost': cost, 
+                                                             'cost': cost,
                                                              'is_facebook_user': is_facebook_user}, context)
 
 
@@ -447,7 +448,6 @@ def gamechoice(request):
 
 
 def game(request):
-
     context = contextget(request)
 
     user = getuser(request)
@@ -459,21 +459,21 @@ def game(request):
     else:
         mine_type = request.session['mine_type']
 
-    if not request.session['game_started']:
+    sess_id = request.session._session_key
+
+    # If the game is not in cache create a new game
+    if not incache(sess_id):
         _game = startgame(request, mine_type)  # call on the start game method
 
-        _game_pickled = pickle.dumps(_game)
-        request.session['game_pickled'] = _game_pickled
         request.session['pointer'] = 0
         request.session['mine_no'] = 1
         request.session['time_remaining'] = 100
         _time_remaining = 100
         request.session['game_started'] = True
 
+    # Otehrwise load it from the cache
     else:
-        # Unpickling
-        _game_pickled = request.session['game_pickled']
-        _game = pickle.loads(_game_pickled)
+        _game = get_game_incache(sess_id)
         _time_remaining = request.session['time_remaining']
 
     if request.session['time_remaining'] <= 0:
@@ -516,10 +516,9 @@ def determine_cost(mine_type):
 
 def ajaxview(request):
     user = getuser(request)
-
-    # Unpickling the blocks
-    _game_pickled = request.session['game_pickled']
-    _game = pickle.loads(_game_pickled)
+    sess_id = request.session._session_key
+    # Retrieve game from cache
+    _game = get_game_incache(sess_id)
 
     # POSTED objects['pointer']
     gold_collected = _game.player_dig()
@@ -529,9 +528,8 @@ def ajaxview(request):
     request.session['time_remaining'] -= getmodt_tool(user)
     request.session['gold'] += gold_collected
 
-    # Pickling
-    _game_pickled = pickle.dumps(_game)
-    request.session['game_pickled'] = _game_pickled
+    # Store game session into cache
+    store_game_incache(sess_id, _game)
 
     myResponse = {}
 
@@ -766,15 +764,15 @@ def add_new_profile(user, response, *args, **kwargs):
     profile.vehicle = Vehicle.objects.get(pk=1)
     profile.tool = DiggingEquipment.objects.get(pk=1)
     profile.save()
-	
-	
+
+
 def post_to_wall(request):
-    social_user = request.user.social_auth.filter( provider='facebook',)[0]
+    social_user = request.user.social_auth.filter(provider='facebook', )[0]
     day_gold = request.session['gold']
-    attachment={}
-    attachment['name'] ="Gold Digger game "
-    attachment['link']="http://goldrush.pythonanywhere.com/gold_digger/"
-    msg = "Lucky day! Just dug "+str(day_gold)+" gold nuggets today! Check it out here: "
+    attachment = {}
+    attachment['name'] = "Gold Digger game "
+    attachment['link'] = "http://goldrush.pythonanywhere.com/gold_digger/"
+    msg = "Lucky day! Just dug " + str(day_gold) + " gold nuggets today! Check it out here: "
     graph = facebook.GraphAPI(social_user.extra_data['access_token'])
     graph.put_object("me", "feed", message=msg, **attachment)
     return game_over(request)
