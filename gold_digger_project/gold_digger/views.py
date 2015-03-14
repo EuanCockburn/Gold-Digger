@@ -67,7 +67,14 @@ def user_logout(request):
 
 @login_required
 def user_profile(request):
-    return utility.userprofile(request)
+    user = utility.getuser(request)
+    achieve = UserAchievements.objects.filter(user=user)
+    context = utility.contextget(request)
+
+    return render_to_response('gold_digger/profile.html', {'user': user,
+                                                           'mod_scan': utility.getmod_scan(user),
+                                                           'modt_tool': utility.getmodt_tool(user),
+                                                           'achievements': achieve}, context)
 
 
 @login_required
@@ -207,7 +214,7 @@ def display_achievements(request):
 
 
 def egg(request):
-    user = UserProfile.objects.get(user=request.user)
+    user = utility.getuser(request)
     achievementegg = Achievements.objects.get(id=15)
 
     if not UserAchievements.objects.filter(user=user, achievement=achievementegg).exists():
@@ -254,6 +261,6 @@ def change_profile_image(request):
         utility.usersave(user)
     return user_profile(request)
 	
-#post score to Facebook walll
+#post score to Facebook wall
 def share(request):
     return utility.post_to_wall(request)
