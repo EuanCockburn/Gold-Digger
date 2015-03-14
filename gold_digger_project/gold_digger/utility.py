@@ -2,6 +2,7 @@ from game.game import *
 from game.game import *
 from game.yieldgenerator import *
 from game.cuegenerator import *
+import game.yieldgenerator
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render_to_response
@@ -112,62 +113,68 @@ def contextget(request):
     return context
 
 
+def mine_builder():
+    cali = {'max_yield': 25, 'cost': 40, 'slope': 1,
+            'adjust_a': -2, 'adjust_b': 2,
+            'yield_generator': RandUniformAdjustYield}
+    yukn = {'max_yield': 55, 'cost': 100, 'slope': 1,
+            'adjust_a': 0, 'adjust_b': [15, 20, 25, 35, 45, 50, 55],
+            'yield_generator': RandMaxYield}
+    braz = {'max_yield': 20, 'cost': 200, 'slope': -1.5,
+            'adjust_a': 5, 'adjust_b': [10, 12, 15, 20],
+            'yield_generator': RandMaxYield}
+    soua = {'max_yield': 53, 'cost': 300, 'slope': random.choice([0.2, 0.1, 0.3, 6, 8]),
+            'adjust_a': 0, 'adjust_b': [47, 48, 49, 50, 51, 52, 53],
+            'yield_generator': RandMaxYield}
+    scot = {'max_yield': 95, 'cost': 400, 'slope': 0.7,
+            'adjust_a': random.randint(-8, -2), 'adjust_b': [80, 83, 85, 87, 90, 92, 95],
+            'yield_generator': RandMaxYield}
+    vict = {'max_yield': 110, 'cost': 500, 'slope': 1,
+            'adjust_a': 3, 'adjust_b': [40, 50, 60, 70, 80, 90, 100, 110],
+            'yield_generator': RandMaxYield}
+
+    mines = {'California': cali, 'Yukon': yukn, 'Brazil': braz,
+             'South Africa': soua, 'Scotland': scot, 'Victoria': vict}
+
+    return mines
+
+
+def determine_cost(mine_type):
+    mines = mine_builder()
+    return mines[mine_type]['cost']
+
+
+def get_min_mine_cost():
+    mines = mine_builder()
+    costs = []
+    for key in mines:
+        costs.append(mines[key]['cost'])
+
+    return min(costs)
+
+
 def startgame(request, mine_type):
     user = getuser(request)
-    time_remaining = 100  # the player starts with 300 units of time
-    no_mines = 20  # the game will consist of ten individual mines
+    time_remaining = 100  # the player starts with 100 units of time
+    no_mines = 11  # the game will consist of eleven individual mines
     depth = 10  # each mine will be 10 blocks deep
     sess_id = request.session._session_key  # Define cache id as session key
+    mines = mine_builder()
 
-    if mine_type == 'California':
-        # print "California"
-        request.session['mine_type'] = 'California'
-        yield_array = RandUniformAdjustYield(depth, 25, 1, -2, 2)
-        max_yield = 25
+    request.session['mine_type'] = mine_type
 
-    elif mine_type == 'Yukon':
-        # print "Yukon"
-        request.session['mine_type'] = "Yukon"
-        span = [15, 20, 25, 35, 45, 50, 55]
-        yield_array = RandMaxYield(depth, 55, 1, 0, span)
-        max_yield = 55
+    max_yield = mines[mine_type]['max_yield']
+    slope = mines[mine_type]['slope']
+    adjust_a = mines[mine_type]['adjust_a']
+    adjust_b = mines[mine_type]['adjust_b']
 
-    elif mine_type == 'Brazil':
-        # print "Brazil"
-        request.session['mine_type'] = 'Brazil'
-        span = [10, 12, 15, 20]
-        yield_array = RandMaxYield(depth, 20, -1.5, 5, span)
-        max_yield = 20
-
-    elif mine_type == 'South Africa':
-        # print "South Africa"
-        request.session['mine_type'] = 'South Africa'
-        span = [0.2, 0.1, 0.3, 6, 8]
-        span2 = [47, 48, 49, 50, 51, 52, 53]
-        yield_array = RandMaxYield(depth, 53, random.choice(span), 0, span2)
-        max_yield = 53
-
-    elif mine_type == 'Scotland':
-        # print "Scotland"
-        request.session['mine_type'] = 'Scotland'
-        span = [80, 83, 85, 87, 90, 92, 95]
-        yield_array = RandMaxYield(depth, 95, 0.7, random.randint(-8, -2), span)
-        max_yield = 95
-
-    elif mine_type == 'Victoria':
-        # print "Victoria"
-        request.session['mine_type'] = 'Victoria'
-        span = [40, 50, 60, 70, 80, 90, 100, 110]
-        yield_array = RandMaxYield(depth, 110, 1, 3, span)
-        max_yield = 110
-    else:
-        print "Invalid mine in session variable"
+    yield_array = mines[mine_type]['yield_generator'](depth, max_yield, slope, adjust_a, adjust_b)
 
     accuracy = getaccuracy(user)
 
-    cue = AccurateCue(max_yield, accuracy)
-
     user = UserProfile.objects.get(user=request.user)
+
+    cue = AccurateCue(max_yield, accuracy)
 
     new_game = Game(time_remaining,
                 no_mines,
@@ -381,7 +388,8 @@ def gameover(request):
     cost = determine_cost(request.session['location'])
     cache.set(sess_id, None, 0)
 
-    if currentgold < 40:
+    min_cost = get_min_mine_cost()
+    if currentgold < min_cost:
         return HttpResponseRedirect(reverse('game_over2'), context)
     try:
         is_facebook_user = request.user.social_auth.filter(provider='facebook', )[0]
@@ -419,7 +427,8 @@ def gamechoice(request):
     user = getuser(request)
     gold = getgold(user)
 
-    if gold < 40:
+    min_cost = get_min_mine_cost()
+    if gold < min_cost:
         return HttpResponseRedirect(reverse('game_over2'), request)
 
     mine_types = ['California', 'Yukon', 'Brazil', 'South Africa', 'Scotland', 'Victoria']
@@ -487,24 +496,6 @@ def game(request):
                                                          'mod_scan': getmod_scan(user),
                                                          'modt_tool': getmodt_tool(user),
                                                          'mod_vehicle': getmod_vehicle(user)}, context)
-
-
-def determine_cost(mine_type):
-    cost = 0
-    if mine_type == 'California':
-        cost = 40
-    elif mine_type == 'Yukon':
-        cost = 100
-    elif mine_type == 'Brazil':
-        cost = 200
-    elif mine_type == 'South Africa':
-        cost = 300
-    elif mine_type == 'Scotland':
-        cost = 400
-    elif mine_type == 'Victoria':
-        cost = 500
-
-    return cost
 
 
 def ajaxview(request):
@@ -608,7 +599,8 @@ def scanupgrade(request):
     if new_item.price > user['gold']:
         return HttpResponse(status=204)
 
-    if (user['gold'] - new_item.price) < 40:
+    min_cost = get_min_mine_cost()
+    if (user['gold'] - new_item.price) < min_cost:
         return HttpResponse(status=202)
 
     else:
@@ -641,7 +633,8 @@ def toolupgrade(request):
     if new_item.price > getgold(user):
         return HttpResponse(status=204)
 
-    if (user.gold - new_item.price) < 40:
+    min_cost = get_min_mine_cost()
+    if (user.gold - new_item.price) < min_cost:
         return HttpResponse(status=202)
 
     else:
@@ -674,7 +667,8 @@ def vehicleupgrade(request):
     if new_item.price > gold:
         return HttpResponse(status=204)
 
-    if (gold - new_item.price) < 40:
+    min_cost = get_min_mine_cost()
+    if (gold - new_item.price) < min_cost:
         return HttpResponse(status=202)
 
     else:
