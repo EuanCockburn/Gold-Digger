@@ -169,7 +169,7 @@ def startgame(request, mine_type):
 
     user = UserProfile.objects.get(user=request.user)
 
-    game = Game(time_remaining,
+    new_game = Game(time_remaining,
                 no_mines,
                 max_yield,
                 depth,
@@ -181,13 +181,13 @@ def startgame(request, mine_type):
                 mine_type,
                 user.user.username)
 
+    new_game.start()
+
     # Store the generated game in the cache
     print "New game cached"
-    store_game_incache(sess_id, game)
+    store_game_incache(sess_id, new_game)
 
-    game.start()
-
-    return game
+    return new_game
 
 
 def loginhome(request):

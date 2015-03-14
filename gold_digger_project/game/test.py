@@ -60,5 +60,5 @@ print "Victoria", victoria, get_optimal(victoria, dig, move)
 
 cali = RandUniformAdjustYield(depth, 25, 1, -2, 2).generate_array()
 print "\nCalifornia", cali
-print AccurateCue(25, 0.8).generate_array(cali)
+print AccurateCue(25, 0.2).generate_array(cali)
 
