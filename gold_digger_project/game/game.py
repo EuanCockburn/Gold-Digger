@@ -2,8 +2,6 @@ from minefactory import *
 from yieldgenerator import *
 from cuegenerator import *
 
-# import cache and pickle functioning
-import pickle
 from logger import event_logger
 
 # class to represent an instance of a game

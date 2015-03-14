@@ -78,7 +78,7 @@ def getalltimegold(user):
 
 
 def usersave(user):
-    user.save
+    user.save()
 
 
 def getequipid(user):
@@ -114,7 +114,6 @@ def contextget(request):
 
 def startgame(request, mine_type):
     user = getuser(request)
-    print user
     time_remaining = 100  # the player starts with 300 units of time
     no_mines = 20  # the game will consist of ten individual mines
     depth = 10  # each mine will be 10 blocks deep
@@ -183,6 +182,7 @@ def startgame(request, mine_type):
                 user.user.username)
 
     # Store the generated game in the cache
+    print "New game cached"
     store_game_incache(sess_id, game)
 
     game.start()
@@ -309,17 +309,6 @@ def otherlogin(request):
                                                         'mod_vehicle': getmod_vehicle(user)}, context)
 
 
-def userprofile(request):
-    user = getuser(request)
-    achieve = UserAchievements.objects.filter(user=user)
-    context = contextget(request)
-
-    return render_to_response('gold_digger/profile.html', {'user': user,
-                                                           'mod_scan': getmod_scan(user),
-                                                           'modt_tool': getmodt_tool(user),
-                                                           'achievements': achieve}, context)
-
-
 def move(request):
     user = getuser(request)
     context = contextget(request)
@@ -330,9 +319,11 @@ def move(request):
     user.mines += 1
     usersave(user)
     sess_id = request.session._session_key
-    # If the game exists in teh cache retrieve it from there
+
+    # If the game exists in the cache retrieve it from there
     if incache(sess_id):
         game = get_game_incache(sess_id)
+
     # Otherwise a game has not been started so create a new game for the current mine_type
     else:
         mine_type = request.session['mine_type']
@@ -365,6 +356,7 @@ def gameover(request):
     user = getuser(request)
     context = contextget(request)
     currentgold = getgold(user)
+    sess_id = request.session._session_key
 
     if currentgold > getalltimegold(user):
         user.all_time_max_gold = currentgold
@@ -387,6 +379,7 @@ def gameover(request):
     total_gold = getgold(user)
     request.session['gold'] = 0
     cost = determine_cost(request.session['location'])
+    cache.set(sess_id, None, 0)
 
     if currentgold < 40:
         return HttpResponseRedirect(reverse('game_over2'), context)
@@ -517,10 +510,17 @@ def determine_cost(mine_type):
 def ajaxview(request):
     user = getuser(request)
     sess_id = request.session._session_key
-    # Retrieve game from cache
-    _game = get_game_incache(sess_id)
+
+    # Retrieve game from cache if it exists
+    if incache(sess_id):
+        _game = get_game_incache(sess_id)
+    # If it does not exist create a new game
+    else:
+        mine_type = request.session['location']
+        _game = startgame(request, mine_type)
 
     # POSTED objects['pointer']
+    _game.player_move()
     gold_collected = _game.player_dig()
     max_yield = _game.get_max_yield()
 
