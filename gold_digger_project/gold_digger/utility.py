@@ -520,7 +520,7 @@ def ajaxview(request):
         _game = startgame(request, mine_type)
 
     # POSTED objects['pointer']
-    _game.player_move()
+    #_game.player_move()
     gold_collected = _game.player_dig()
     max_yield = _game.get_max_yield()
 
@@ -726,18 +726,16 @@ def gameover2(request):
                                                               'days': days}, context)
 
 
-def achievement(user, id):
-    achieved = Achievements.objects.get(id=id)
-    return add_achievement(user, achieved)
+def add_achievement(user, achieved_id):
 
+    achieved = Achievements.objects.get(id=achieved_id)
 
-def add_achievement(user, achieved):
     myResponse = {}
 
-    if not UserAchievements.objects.filter(user=user, achievement=achievement).exists():
+    if not UserAchievements.objects.filter(user=user, achievement=achieved).exists():
         achieve = UserAchievements()
         achieve.user = user
-        achieve.achievement = achievement
+        achieve.achievement = achieved
         achieve.save()
         print "Achievement UNLOCKED"
 

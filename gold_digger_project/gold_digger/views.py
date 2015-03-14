@@ -158,50 +158,35 @@ def achievements(request):
 
     myResponse = {}
 
+    gold = [50, 500, 1000, 5000, 10000, 20000]
+    played = [5, 10, 15, 20, 50]
+    mine = [50, 100, 300]
+
+    i = 0
     if user.gold < 50:
         myResponse['unlocked'] = True
 
-    if user.gold > 50:
-        myResponse = utility.achievement(user, 1)
+    while user.gold > gold[i]:
+        i += 1
 
-    if user.gold > 500:
-        myResponse = utility.achievement(user, 2)
+    if i > 0:
+        myResponse = utility.add_achievement(user, i)
 
-    if user.gold > 1000:
-        myResponse = utility.achievement(user, 3)
+    j = 0
+    while user.games_played > played[j]:
+        j += 1
 
-    if user.gold > 5000:
-        myResponse = utility.achievement(user, 4)
+    j += 6
+    if j > 6:
+        myResponse = utility.add_achievement(user, j)
 
-    if user.gold > 10000:
-        myResponse = utility.achievement(user, 5)
+    k = 0
+    while user.mines > mine[k]:
+        k += 1
 
-    if user.gold > 20000:
-        myResponse = utility.achievement(user, 6)
-
-    if user.games_played > 5:
-        myResponse = utility.achievement(user, 7)
-
-    if user.games_played > 10:
-        myResponse = utility.achievement(user, 8)
-
-    if user.games_played > 15:
-        myResponse = utility.achievement(user, 9)
-
-    if user.games_played > 20:
-        myResponse = utility.achievement(user, 10)
-
-    if user.games_played > 50:
-        myResponse = utility.achievement(user, 11)
-
-    if user.mines > 50:
-        myResponse = utility.achievement(user, 12)
-
-    if user.mines > 100:
-        myResponse = utility.achievement(user, 13)
-
-    if user.mines > 300:
-        myResponse = utility.achievement(user, 14)
+    k += 11
+    if k > 11:
+        myResponse = utility.add_achievement(user, k)
 
     return HttpResponse(json.dumps(myResponse), content_type="application/json")
 
