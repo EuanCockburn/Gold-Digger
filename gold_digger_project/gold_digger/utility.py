@@ -106,6 +106,17 @@ def getvhcle(user):
     return user.vehicle
 
 
+def getgame(sess_id, request):
+    # If the game exists in the cache retrieve it from there
+    if incache(sess_id):
+       return get_game_incache(sess_id)
+
+    # Otherwise a game has not been started so create a new game for the current mine_type
+    else:
+        mine_type = request.session['mine_type']
+        return startgame(request, mine_type)
+
+
 # Function to retrieve the context, every time the context is needed to function will call here
 # It stops the context request being repeated throughout the system
 def contextget(request):
@@ -197,34 +208,6 @@ def startgame(request, mine_type):
     return new_game
 
 
-def loginhome(request):
-    context = contextget(request)
-
-    user = getuser(request)
-
-    request.session['days'] = getgames_played(user)
-
-    return render_to_response('gold_digger/home.html', {'current_user': user,
-                                                        'scan': getscan(user),
-                                                        'tool': gettool(user),
-                                                        'vehicle': getvehicle(user),
-                                                        'gold': getgold(user),
-                                                        'mod_scan': getmod_scan(user),
-                                                        'modt_tool': getmodt_tool(user),
-                                                        'mod_vehicle': getmod_vehicle(user)}, context)
-
-
-def basichome(request):
-    context = contextget(request)
-
-    request.session['time_remaining'] = 100
-    request.session['gold'] = 0
-    user_form = UserForm()
-    profile_form = UserProfileForm()
-    return render_to_response('gold_digger/home.html', {'user_form': user_form, 'profile_form': profile_form},
-                              context)
-
-
 def incache(id):
     return cache.has_key(id)
 
@@ -269,316 +252,6 @@ def postregister_valid(request, user_form, profile_form):
 def postregister_invalid(context, user_form, profile_form):
     return render_to_response('gold_digger/home.html', {'user_form': user_form, 'profile_form': profile_form,
                                                         'registered': registered}, context)
-
-
-def postlogin(request):
-    context = contextget(request)
-
-    username = request.POST['username']
-    password = request.POST['password']
-
-    user = authenticate(username=username, password=password)
-
-    if user:
-        if user.is_active:
-
-            login(request, user)
-            request.session['time_remaining'] = 100
-            request.session['gold'] = 0
-            request.session['mine_no'] = 0
-            request.session['days'] = 1
-
-            return HttpResponseRedirect(reverse('game_choice2'), context)
-        else:
-            return HttpResponse("Your Gold Digger account is disabled.")
-    else:
-
-        print "Invalid login details: {0}, {1}".format(username, password)
-        bad_details = {'bad_details': " -=: Invalid login details supplied. :=-"}
-        user_form = UserForm()
-        profile_form = UserProfileForm()
-        return render_to_response('gold_digger/home.html', {'user_form': user_form, 'profile_form': profile_form,
-                                                            'bad_details': bad_details}, context)
-
-
-def otherlogin(request):
-    context = contextget(request)
-
-    user = getuser(request)
-
-    return render_to_response('gold_digger/home.html', {'current_user': user,
-                                                        'scan': getscan(user),
-                                                        'tool': gettool(user),
-                                                        'vehicle': getvehicle(user),
-                                                        'gold': getgold(user),
-                                                        'mod_scan': getmod_scan(user),
-                                                        'modt_tool': getmodt_tool(user),
-                                                        'mod_vehicle': getmod_vehicle(user)}, context)
-
-
-def move(request):
-    user = getuser(request)
-    context = contextget(request)
-
-    request.session['time_remaining'] -= getmod_vehicle(user)
-    request.session['pointer'] = 0
-    request.session['mine_no'] += 1
-    user.mines += 1
-    usersave(user)
-    sess_id = request.session._session_key
-
-    # If the game exists in the cache retrieve it from there
-    if incache(sess_id):
-        game = get_game_incache(sess_id)
-
-    # Otherwise a game has not been started so create a new game for the current mine_type
-    else:
-        mine_type = request.session['mine_type']
-        game = startgame(request, mine_type)
-
-    # Conduct move and store changes in the cache
-    game.player_move()
-    store_game_incache(sess_id, game)
-    # request.session['game_pickled'] = game_pickled
-
-    if request.session['time_remaining'] <= 0:
-        return HttpResponseRedirect(reverse('game_over'), context)
-
-    return HttpResponseRedirect(reverse('game2'), context)
-
-
-def back2main(request):
-    user = getuser(request)
-    context = contextget(request)
-
-    request.session['has_mine'] = False
-    request.session['time_remaining'] = 0
-    user.gold -= request.session['gold']
-    usersave(user)
-
-    return HttpResponseRedirect(reverse('home'), context)
-
-
-def gameover(request):
-    user = getuser(request)
-    context = contextget(request)
-    currentgold = getgold(user)
-    sess_id = request.session._session_key
-
-    if currentgold > getalltimegold(user):
-        user.all_time_max_gold = currentgold
-
-    # Updating user values
-    user.gold += request.session['gold']
-    user.mines += 1
-    user.games_played += 1
-    request.session['days'] += 1
-    user.all_time_gold += request.session['gold']
-    user.average = user.all_time_gold / getmines(user)
-    usersave(user)
-
-    request.session['game_started'] = False
-    request.session['mine_type'] = ''
-    request.session['time_remaining'] = 100
-    mine_no = request.session['mine_no']
-    request.session['mine_no'] = 0
-    day_gold = request.session['gold']
-    total_gold = getgold(user)
-    request.session['gold'] = 0
-    cost = determine_cost(request.session['location'])
-    cache.set(sess_id, None, 0)
-
-    min_cost = get_min_mine_cost()
-    if currentgold < min_cost:
-        return HttpResponseRedirect(reverse('game_over2'), context)
-    try:
-        is_facebook_user = request.user.social_auth.filter(provider='facebook', )[0]
-        is_facebook_user = 1
-    except:
-        is_facebook_user = 0
-
-    return render_to_response('gold_digger/game_over.html', {'day_gold': day_gold,
-                                                             'total_gold': total_gold,
-                                                             'mine_no': mine_no,
-                                                             'cost': cost,
-                                                             'is_facebook_user': is_facebook_user}, context)
-
-
-def leaderboards(request):
-    context = contextget(request)
-
-    users_avg = UserProfile.objects.order_by('-average')
-    users_gold = UserProfile.objects.order_by('-all_time_max_gold')
-    users_games = UserProfile.objects.order_by('-games_played')
-    users_all_time_gold = UserProfile.objects.order_by('-all_time_gold')
-    users_achievements = UserProfile.objects.all()
-    achieve = UserAchievements.objects.all()
-
-    return render_to_response('gold_digger/leaderboards.html', {'users_avg': users_avg,
-                                                                'users_gold': users_gold,
-                                                                'users_games': users_games,
-                                                                'users_all_time_gold': users_all_time_gold,
-                                                                'users_achievements': users_achievements,
-                                                                'achiev': achieve}, context)
-
-
-def gamechoice(request):
-    context = contextget(request)
-    user = getuser(request)
-    gold = getgold(user)
-
-    min_cost = get_min_mine_cost()
-    if gold < min_cost:
-        return HttpResponseRedirect(reverse('game_over2'), request)
-
-    mine_types = ['California', 'Yukon', 'Brazil', 'South Africa', 'Scotland', 'Victoria']
-
-    request.session['game_started'] = False
-    request.session['mine_type'] = ''
-    request.session['purchase'] = False
-    request.session['time_remaining'] = 100
-    request.session['gold'] = 0
-
-    return render_to_response('gold_digger/game_choice2.html', {'mine_types': mine_types,
-                                                                'scan': getscan(user),
-                                                                'tool': gettool(user),
-                                                                'vehicle': getvehicle(user),
-                                                                'gold': gold,
-                                                                'mod_scan': getmod_scan(user),
-                                                                'modt_tool': getmodt_tool(user),
-                                                                'mod_vehicle': getmod_vehicle(user)}, context)
-
-
-def game(request):
-    context = contextget(request)
-
-    user = getuser(request)
-
-    if request.session['mine_type'] == '':
-        mine_type = request.session['location']
-        user.gold -= determine_cost(mine_type)
-        usersave(user)
-    else:
-        mine_type = request.session['mine_type']
-
-    sess_id = request.session._session_key
-
-    # If the game is not in cache create a new game
-    if not incache(sess_id):
-        _game = startgame(request, mine_type)  # call on the start game method
-
-        request.session['pointer'] = 0
-        request.session['mine_no'] = 1
-        request.session['time_remaining'] = 100
-        _time_remaining = 100
-        request.session['game_started'] = True
-
-    # Otehrwise load it from the cache
-    else:
-        _game = get_game_incache(sess_id)
-        _time_remaining = request.session['time_remaining']
-
-    if request.session['time_remaining'] <= 0:
-        return HttpResponseRedirect(reverse('game_over'), context)
-
-    _location = request.session['location']
-    _pointer = request.session['pointer']
-
-    return render_to_response('gold_digger/game2.html', {'blocks': _game.get_current_blocks(),
-                                                         'user': user,
-                                                         'time_remaining': _time_remaining,
-                                                         'move_cost': getmod_vehicle(user),
-                                                         'dig_cost': getmodt_tool(user),
-                                                         'location': _location,
-                                                         'pointer': _pointer,
-                                                         'mine_no': _game.mine_position + 1,
-                                                         'visibility': getmod_scan_l(user),
-                                                         'mod_scan': getmod_scan(user),
-                                                         'modt_tool': getmodt_tool(user),
-                                                         'mod_vehicle': getmod_vehicle(user)}, context)
-
-
-def ajaxview(request):
-    user = getuser(request)
-    sess_id = request.session._session_key
-
-    # Retrieve game from cache if it exists
-    if incache(sess_id):
-        _game = get_game_incache(sess_id)
-    # If it does not exist create a new game
-    else:
-        mine_type = request.session['location']
-        _game = startgame(request, mine_type)
-
-    # POSTED objects['pointer']
-    #_game.player_move()
-    gold_collected = _game.player_dig()
-    max_yield = _game.get_max_yield()
-
-    request.session['pointer'] += 1
-    request.session['time_remaining'] -= getmodt_tool(user)
-    request.session['gold'] += gold_collected
-
-    # Store game session into cache
-    store_game_incache(sess_id, _game)
-
-    myResponse = {}
-
-    if request.session['pointer'] == 10:
-        myResponse['nextmine'] = True
-
-    if request.session['time_remaining'] <= 0:
-        return HttpResponse(status=204)
-
-    if gold_collected == 0:
-        myResponse['nuggets'] = 0
-    else:
-        myResponse['nuggets'] = ((6 * gold_collected) / max_yield) + 1
-
-    myResponse['totalgold'] = getgold(user)
-    myResponse['timeremaining'] = request.session['time_remaining']
-    myResponse['currentgold'] = request.session['gold']
-    myResponse['goldextracted'] = gold_collected
-
-    return HttpResponse(json.dumps(myResponse), content_type="application/json")
-
-
-def store(request):
-    context = contextget(request)
-    user = getuser(request)
-
-    equipment = ScanningEquipment.objects.all()
-    vehicles = Vehicle.objects.all()
-    tools = DiggingEquipment.objects.all()
-    new_id_s = getequipid(user)
-    new_id_t = gettoolid(user)
-    new_id_v = getvehicleid(user)
-    new_item_s = getequipment(user)
-    new_item_t = gettl(user)
-    new_item_v = getvhcle(user)
-
-    if new_id_s != 5:
-        new_id_s += 1
-        new_item_s = ScanningEquipment.objects.get(id=new_id_s)
-
-    if new_id_t != 5:
-        new_id_t += 1
-        new_item_t = DiggingEquipment.objects.get(id=new_id_t)
-
-    if new_id_v != 5:
-        new_id_v += 1
-        new_item_v = Vehicle.objects.get(id=new_id_v)
-
-    return render_to_response('gold_digger/store.html', {'equipment': equipment,
-                                                         'vehicles': vehicles,
-                                                         'tools': tools,
-                                                         'gold': getgold(user),
-                                                         'scan': getscan(user),
-                                                         'dig': gettool(user),
-                                                         'move': getvehicle(user),
-                                                         'new_item_s': new_item_s,
-                                                         'new_item_t': new_item_t,
-                                                         'new_item_v': new_item_v}, context)
 
 
 def scanupgrade(request):
@@ -682,44 +355,6 @@ def vehicleupgrade(request):
         return HttpResponse(json.dumps(myResponse), content_type="application/json")
 
 
-def update_cost(request):
-    user = getuser(request)
-    user.gold -= int(request.POST['cost'])
-
-    gold = getgold(user)
-
-    if gold < 20:
-        return HttpResponse(status=204)
-
-    usersave(user)
-
-    myResponse = gold
-
-    return HttpResponse(json.dumps(myResponse), content_type="application/json")
-
-
-def gameover2(request):
-    context = contextget(request)
-    user = getuser(request)
-
-    user.gold = 0
-    user.equipment = ScanningEquipment.objects.get(id=1)
-    user.tool = DiggingEquipment.objects.get(id=1)
-    user.vehicle = Vehicle.objects.get(id=1)
-    request.session['gold'] = 0
-    mines = request.session['mine_no']
-    request.session['mine_no'] = 0
-    days = (request.session['days']) - 1
-    request.session['days'] = 1
-    user.games_played += 1
-    user.game_overs += 1
-    user.gold = 100
-    usersave(user)
-
-    return render_to_response('gold_digger/game_over2.html', {'mines': mines,
-                                                              'days': days}, context)
-
-
 def add_achievement(user, achieved_id):
 
     achieved = Achievements.objects.get(id=achieved_id)
@@ -761,9 +396,7 @@ def add_new_profile(user, response, *args, **kwargs):
 def post_to_wall(request):
     social_user = request.user.social_auth.filter(provider='facebook', )[0]
     day_gold = request.session['gold']
-    attachment = {}
-    attachment['name'] = "Gold Digger game "
-    attachment['link'] = "http://goldrush.pythonanywhere.com/gold_digger/"
+    attachment = {'name': "Gold Digger game ", 'link': "http://goldrush.pythonanywhere.com/gold_digger/"}
     msg = "Lucky day! Just dug " + str(day_gold) + " gold nuggets today! Check it out here: "
     graph = facebook.GraphAPI(social_user.extra_data['access_token'])
     graph.put_object("me", "feed", message=msg, **attachment)
