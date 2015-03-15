@@ -391,13 +391,3 @@ def add_new_profile(user, response, *args, **kwargs):
     profile.vehicle = Vehicle.objects.get(pk=1)
     profile.tool = DiggingEquipment.objects.get(pk=1)
     profile.save()
-
-
-def post_to_wall(request):
-    social_user = request.user.social_auth.filter(provider='facebook', )[0]
-    day_gold = request.session['gold']
-    attachment = {'name': "Gold Digger game ", 'link': "http://goldrush.pythonanywhere.com/gold_digger/"}
-    msg = "Lucky day! Just dug " + str(day_gold) + " gold nuggets today! Check it out here: "
-    graph = facebook.GraphAPI(social_user.extra_data['access_token'])
-    graph.put_object("me", "feed", message=msg, **attachment)
-    return game_over(request)
