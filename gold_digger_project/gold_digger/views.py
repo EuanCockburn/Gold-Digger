@@ -18,7 +18,7 @@ def home(request):
 
     context = utility.contextget(request)
 
-    user = utility.getuser(request)
+    user = request.user.id
 
     try:
         request.session['days'] = utility.getgames_played(user)
